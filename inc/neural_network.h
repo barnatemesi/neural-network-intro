@@ -1,5 +1,5 @@
 // NeuralNetwork.hpp
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Eigen>
 #include <iostream>
 #include <vector>
 

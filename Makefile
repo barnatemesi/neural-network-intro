@@ -1,40 +1,71 @@
-# Compiler and flags
-CXX     := g++
-CXXFLAGS:= -Wall   
-CXXFLAGS+= -Wextra
-CXXFLAGS+= -std=c++17
-CXXFLAGS+= -O2
+# =========================================================================
+#   Unity - A Test Framework for C
+#   ThrowTheSwitch.org
+#   Copyright (c) 2007-24 Mike Karlesky, Mark VanderVoord, & Greg Williams
+#   SPDX-License-Identifier: MIT
+# =========================================================================
 
-# Target executable name
-TARGET  := main
+# define firmware version
+VERSION_MAJOR = 0
+VERSION_MINOR = 0
+VERSION_PATCH = 0
 
-# Source files
-SRCS    := main.cpp neural_network.cpp
+#We try to detect the OS we are running on, and adjust commands as needed
+ifeq ($(OS),Windows_NT)
+  ifeq ($(shell uname -s),) # not in a bash-like shell
+	CLEANUP = del /F /Q
+	MKDIR = mkdir
+  else # in a bash-like shell, like msys
+	CLEANUP = rm -f
+	MKDIR = mkdir -p
+  endif
+	TARGET_EXTENSION=.exe
+else
+	CLEANUP = rm -f
+	MKDIR = mkdir -p
+	TARGET_EXTENSION=.out
+endif
 
-# Object files (replace .cpp with .o)
-OBJS    := $(SRCS:.cpp=.o)
+C_COMPILER=g++
+ifeq ($(shell uname -s), Darwin)
+C_COMPILER=clang
+endif
 
-# Default rule: do nothing
-.DEFAULT_GOAL := help
+# C defines
+C_DEFS = \
+
+CXXFLAGS=-Wall
+
+TARGET_BASE1=program
+
+TARGET1 = $(TARGET_BASE1)$(TARGET_EXTENSION)
+
+C_TEST_SOURCES = \
+src/main.cpp \
+src/neural_network.cpp \
+
+INC_DIRS = \
+-Iinc \
+-Ieigen \
+
+LIBS = -lc -lm
+
+SYMBOLS = -DUNITY_FIXTURE_NO_EXTRAS
 
 help:
-	@echo "Usage:"
-	@echo "  make all   # build $(TARGET)"
-	@echo "  make clean # remove objects and binary"
+	@echo "Usage:" \
+    "  make all   # build $(TARGET)" \
+    "  make clean # remove objects and binary" \
 
-all: $(TARGET)
+all: clean default
 
-# Link step
-$(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJS)
+# build and test
+default:
+	$(C_COMPILER) $(C_DEFS) $(CFLAGS) $(INC_DIRS) $(SYMBOLS) $(C_TEST_SOURCES) $(LIBS) -o $(TARGET1)
+#	- ./$(TARGET1) -v
 
-# Compile steps
-main.o: main.cpp main.h neural_network.h
-	$(CXX) $(CXXFLAGS) -c main.cpp
-
-neural.o: neural_network.cpp neural_network.h
-	$(CXX) $(CXXFLAGS) -c neural_network.cpp
-
-# Clean rule
 clean:
-	rm -f $(OBJS) $(TARGET)
+	$(CLEANUP) $(TARGET1)
+
+ci: CFLAGS += -Werror
+ci: default
