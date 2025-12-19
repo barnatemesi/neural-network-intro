@@ -26,6 +26,8 @@ else
 	TARGET_EXTENSION=.out
 endif
 
+TARGET_DIR=build
+
 C_COMPILER=g++
 ifeq ($(shell uname -s), Darwin)
 C_COMPILER=clang
@@ -61,11 +63,11 @@ all: clean default
 
 # build and test
 default:
-	$(C_COMPILER) $(C_DEFS) $(CFLAGS) $(INC_DIRS) $(SYMBOLS) $(C_TEST_SOURCES) $(LIBS) -o $(TARGET1)
-#	- ./$(TARGET1) -v
+	$(MKDIR) $(TARGET_DIR)
+	$(C_COMPILER) $(C_DEFS) $(CFLAGS) $(INC_DIRS) $(SYMBOLS) $(C_TEST_SOURCES) $(LIBS) -o $(TARGET_DIR)/$(TARGET1)
 
 clean:
-	$(CLEANUP) $(TARGET1)
+	$(CLEANUP) $(TARGET_DIR)/$(TARGET1)
 
 ci: CFLAGS += -Werror
 ci: default
