@@ -10,8 +10,12 @@ using namespace std;
 int main(int argc, char *argv[])
 {
     int length_of_training = 10U;
-    if (argc > 2) {
+    Scalar training_rate_inp = 0.005F;
+    if (argc > 3) {
         cout << "too many arguments were passed!" << endl;
+    } else if (argc == 3) {
+        training_rate_inp = atof(argv[2]);
+        length_of_training = atoi(argv[1]);
     } else if (argc == 2) {
         length_of_training = atoi(argv[1]);
     }
@@ -26,7 +30,7 @@ int main(int argc, char *argv[])
     cout << "***************" << endl;
 
     // body of algorithm
-    NeuralNetwork n({ 2, 3, 1 });
+    NeuralNetwork n({ 2, 3, 1 }, training_rate_inp);
     vector<RowVector*> in_dat;
     vector<RowVector*> out_dat;
 
