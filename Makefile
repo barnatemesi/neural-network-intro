@@ -40,7 +40,7 @@ CXX_COMPILER=clang++
 endif
 
 # C defines
-C_DEFS = \
+C_DEFS = -DDEBUG\
 
 CXXFLAGS=-Wall
 CXXFLAGS+=-Wextra

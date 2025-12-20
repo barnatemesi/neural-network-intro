@@ -46,5 +46,8 @@ public:
     std::vector<RowVector*> deltas; // stores the error contribution of each neurons
     std::vector<Matrix*> weights; // the connection weights itself
     Scalar learningRate;
+
+    // destructor -> free neuronLayers, cacheLayers, weights, and deltas
+    ~NeuralNetwork();
 };
 #endif // NEURAL_H
