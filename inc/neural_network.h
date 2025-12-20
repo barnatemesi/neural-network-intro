@@ -3,7 +3,11 @@
 // NeuralNetwork.hpp
 #include <Eigen/Eigen>
 #include <iostream>
+#include <string>
 #include <vector>
+#include <functional>
+#include <fstream>
+#include <sstream>
 
 using namespace std;
 
@@ -34,7 +38,7 @@ public:
     void updateWeights();
 
     // function to train the neural network give an array of data points
-    Scalar train(vector<RowVector*> input_data, vector<RowVector*> output_data);
+    vector<Scalar> train(vector<RowVector*> input_data, vector<RowVector*> output_data);
 
     // storage objects for working of neural network
     /*
@@ -52,4 +56,10 @@ public:
     // destructor -> free neuronLayers, cacheLayers, weights, and deltas
     ~NeuralNetwork();
 };
+
+// User function declaration
+Scalar activationFunction(Scalar x);
+Scalar activationFunctionDerivative(Scalar x);
+void ReadCSV(string filename, vector<RowVector*>& data);
+void genData(string filename);
 #endif // NEURAL_H

@@ -1,15 +1,5 @@
 #include "neural_network.h"
 
-Scalar activationFunction(Scalar x)
-{
-    return tanhf(x);
-}
-
-Scalar activationFunctionDerivative(Scalar x)
-{
-    return 1 - tanhf(x) * tanhf(x);
-}
-
 NeuralNetwork::NeuralNetwork(vector<uint> topology, Scalar learningRate)
 {
 #ifdef DEBUG
@@ -114,24 +104,25 @@ void NeuralNetwork::propagateBackward(RowVector& output)
     updateWeights();
 }
 
-Scalar NeuralNetwork::train(vector<RowVector*> input_data, vector<RowVector*> output_data)
+vector<Scalar> NeuralNetwork::train(vector<RowVector*> input_data, vector<RowVector*> output_data)
 {
-    Scalar MS_error;
+    vector<Scalar> MS_error;
+
     for (uint i=0; i<input_data.size(); ++i) {
-#ifdef DEBUG
+#ifdef DEBUG_TRAIN
         cout << "Input to neural network is : " << *input_data[i] << endl;
 #endif
 
         propagateForward(*input_data[i]);
-#ifdef DEBUG
+#ifdef DEBUG_TRAIN
         cout << "Expected output is : " << *output_data[i] << endl;
         cout << "Output produced is : " << *neuronLayers.back() << endl;
 #endif
 
         propagateBackward(*output_data[i]);
-        MS_error = sqrt((*deltas.back()).dot((*deltas.back())) / deltas.back()->size());
-#ifdef DEBUG
-        cout << "MSE : " << MS_error << endl;
+        MS_error.push_back(sqrt((*deltas.back()).dot((*deltas.back())) / deltas.back()->size()));
+#ifdef DEBUG_TRAIN
+        cout << "MSE : " << MS_error.back() << endl;
 #endif
     } // end of for loop
 
@@ -163,4 +154,67 @@ NeuralNetwork::~NeuralNetwork(void)
         delete p;
     }
     weights.clear();
+}
+
+Scalar activationFunction(Scalar x)
+{
+    return tanhf(x);
+}
+
+Scalar activationFunctionDerivative(Scalar x)
+{
+    return 1 - tanhf(x) * tanhf(x);
+}
+
+void ReadCSV(string filename, vector<RowVector*>& data)
+{
+    data.clear();
+    ifstream file(filename);
+    string line, word;
+    // determine number of columns in file
+    getline(file, line, '\n');
+    stringstream ss(line);
+    vector<Scalar> parsed_vec;
+
+    while (getline(ss, word, ',')) {
+        parsed_vec.push_back(Scalar(stof(&word[0])));
+    }
+
+    uint cols = parsed_vec.size();
+    data.push_back(new RowVector(cols));
+
+    for (uint i=0; i<cols; i++) {
+        data.back()->coeffRef(1, i) = parsed_vec[i];
+    }
+
+    // read the file
+    if (file.is_open()) {
+        while (getline(file, line, '\n')) {
+            stringstream ss(line);
+            data.push_back(new RowVector(1, cols));
+            uint i = 0;
+            while (getline(ss, word, ',')) {
+                data.back()->coeffRef(i) = Scalar(stof(&word[0]));
+                ++i;
+            }
+        }
+    }
+}
+
+void genData(string filename)
+{
+    constexpr uint lenght_of_desired_data = 1000;
+    ofstream file1(filename + "-in");
+    ofstream file2(filename + "-out");
+
+    for (uint r=0; r<lenght_of_desired_data; r++) {
+        Scalar x = rand() / Scalar(RAND_MAX);
+        Scalar y = rand() / Scalar(RAND_MAX);
+
+        file1 << x << ", " << y << endl;
+        file2 << 2 * x + 10 + y << endl;
+    }
+
+    file1.close();
+    file2.close();
 }

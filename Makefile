@@ -30,7 +30,7 @@ endif
 
 TARGET_DIR=build
 
-ifeq (ENABLE_CLANG, 0)
+ifeq ($(ENABLE_CLANG), 0)
 	CXX_COMPILER=g++
 else
 	CXX_COMPILER=clang++
@@ -40,12 +40,14 @@ CXX_COMPILER=clang++
 endif
 
 # C defines
-C_DEFS = -DDEBUG\
+CXX_DEFS=-DDEBUG\
+CXX_DEFS+=-DDEBUG_TRAIN \
 
 CXXFLAGS=-Wall
 CXXFLAGS+=-Wextra
 CXXFLAGS+=-std=c++17
 CXXFLAGS+=-Og
+CXXFLAGS+=-Wno-maybe-uninitialized
 
 TARGET_BASE1=program
 

@@ -18,8 +18,13 @@ int main()
 
     // body of algorithm
     NeuralNetwork n({ 2, 3, 1 });
-    std::vector<RowVector*> in_dat;
-    std::vector<RowVector*> out_dat;
+    vector<RowVector*> in_dat;
+    vector<RowVector*> out_dat;
+
+    genData("test");
+    ReadCSV("test-in", in_dat);
+    ReadCSV("test-out", out_dat);
+    vector<Scalar> return_val = n.train(in_dat, out_dat);
     
     return 0;
 }

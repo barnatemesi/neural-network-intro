@@ -2,3 +2,4 @@ eigen/
 build/
 build_prod/
 build_dev/
+test*
