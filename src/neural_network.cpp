@@ -90,22 +90,30 @@ void NeuralNetwork::updateWeights()
     for (uint i=0; i<topology.size() - 1; ++i) {
         // in this loop we are iterating over the different layers (from first hidden to output layer)
         // if this layer is the output layer, there is no bias neuron there, number of neurons specified = number of cols
-        // if this layer not the output layer, there is a bias neuron and number of neurons specified = number of cols -1
+        // if this layer is not the output layer, there is a bias neuron and number of neurons specified = number of cols -1
         if (i != topology.size() - 2) {
             for (uint c=0; c<weights[i]->cols() - 1; ++c) {
                 for (uint r=0; r<weights[i]->rows(); ++r) {
-                    weights[i]->coeffRef(r, c) += learningRate * deltas[i + 1]->coeffRef(c) * activationFunctionDerivative(cacheLayers[i + 1]->coeffRef(c)) * neuronLayers[i]->coeffRef(r);
+                    weights[i]->coeffRef(r, c) += 
+                        learningRate * deltas[i + 1]->coeffRef(c) * activationFunctionDerivative(cacheLayers[i + 1]->coeffRef(c)) * neuronLayers[i]->coeffRef(r);
                 }
             }
         }
-        else {
-            for (uint c = 0; c < weights[i]->cols(); c++) {
-                for (uint r = 0; r < weights[i]->rows(); r++) {
-                    weights[i]->coeffRef(r, c) += learningRate * deltas[i + 1]->coeffRef(c) * activationFunctionDerivative(cacheLayers[i + 1]->coeffRef(c)) * neuronLayers[i]->coeffRef(r);
+        else { // this is the output layer, no bias neuron
+            for (uint c=0; c<weights[i]->cols(); ++c) {
+                for (uint r=0; r<weights[i]->rows(); ++r) {
+                    weights[i]->coeffRef(r, c) += 
+                        learningRate * deltas[i + 1]->coeffRef(c) * activationFunctionDerivative(cacheLayers[i + 1]->coeffRef(c)) * neuronLayers[i]->coeffRef(r);
                 }
             }
         }
     }
+}
+
+void NeuralNetwork::propagateBackward(RowVector& output)
+{
+    calcErrors(output);
+    updateWeights();
 }
 
 NeuralNetwork::~NeuralNetwork(void)
