@@ -1,7 +1,5 @@
 #include "neural_network.h"
 
-using namespace std;
-
 Scalar activationFunction(Scalar x)
 {
     return tanhf(x);
@@ -12,7 +10,7 @@ Scalar activationFunctionDerivative(Scalar x)
     return 1 - tanhf(x) * tanhf(x);
 }
 
-NeuralNetwork::NeuralNetwork(std::vector<uint> topology, Scalar learningRate)
+NeuralNetwork::NeuralNetwork(vector<uint> topology, Scalar learningRate)
 {
 #ifdef DEBUG
     cout << "Constructor is called!" << endl;
@@ -114,6 +112,30 @@ void NeuralNetwork::propagateBackward(RowVector& output)
 {
     calcErrors(output);
     updateWeights();
+}
+
+Scalar NeuralNetwork::train(vector<RowVector*> input_data, vector<RowVector*> output_data)
+{
+    Scalar MS_error;
+    for (uint i=0; i<input_data.size(); ++i) {
+#ifdef DEBUG
+        cout << "Input to neural network is : " << *input_data[i] << endl;
+#endif
+
+        propagateForward(*input_data[i]);
+#ifdef DEBUG
+        cout << "Expected output is : " << *output_data[i] << endl;
+        cout << "Output produced is : " << *neuronLayers.back() << endl;
+#endif
+
+        propagateBackward(*output_data[i]);
+        MS_error = sqrt((*deltas.back()).dot((*deltas.back())) / deltas.back()->size());
+#ifdef DEBUG
+        cout << "MSE : " << MS_error << endl;
+#endif
+    } // end of for loop
+
+    return MS_error;
 }
 
 NeuralNetwork::~NeuralNetwork(void)

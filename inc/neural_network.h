@@ -5,6 +5,8 @@
 #include <iostream>
 #include <vector>
 
+using namespace std;
+
 // use typedefs for future ease for changing data types like : float to double
 typedef float Scalar;
 typedef Eigen::MatrixXf Matrix;
@@ -32,7 +34,7 @@ public:
     void updateWeights();
 
     // function to train the neural network give an array of data points
-    void train(std::vector<RowVector*> data);
+    Scalar train(vector<RowVector*> input_data, vector<RowVector*> output_data);
 
     // storage objects for working of neural network
     /*
