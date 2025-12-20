@@ -98,6 +98,13 @@ void NeuralNetwork::updateWeights()
     }
 }
 
+void NeuralNetwork::printWeights()
+{
+    for (Matrix* p : weights) {
+        cout << *p << endl;
+    }
+}
+
 void NeuralNetwork::propagateBackward(RowVector& output)
 {
     calcErrors(output);
