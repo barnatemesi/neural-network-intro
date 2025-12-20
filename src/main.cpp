@@ -1,6 +1,8 @@
-#include "main.h"
-#include<iostream>
+#include <iostream>
 #include <Eigen/Dense>
+#include <vector>
+#include "main.h"
+#include "neural_network.h"
 
 using namespace std;
 

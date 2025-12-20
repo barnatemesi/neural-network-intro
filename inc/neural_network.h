@@ -1,3 +1,5 @@
+#ifndef NEURAL_H
+#define NEURAL_H
 // NeuralNetwork.hpp
 #include <Eigen/Eigen>
 #include <iostream>
@@ -11,6 +13,8 @@ typedef Eigen::VectorXf ColVector;
 
 // neural network implementation class!
 class NeuralNetwork {
+private:
+    std::vector<uint> topology; // topology
 public:
     // constructor
     NeuralNetwork(std::vector<uint> topology, Scalar learningRate = Scalar(0.005));
@@ -43,3 +47,4 @@ public:
     std::vector<Matrix*> weights; // the connection weights itself
     Scalar learningRate;
 };
+#endif // NEURAL_H
