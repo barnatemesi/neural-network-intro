@@ -1,13 +1,21 @@
 #include <iostream>
 #include <Eigen/Dense>
 #include <vector>
+#include <cstdlib>
 #include "main.h"
 #include "neural_network.h"
 
 using namespace std;
 
-int main()
+int main(int argc, char *argv[])
 {
+    int length_of_training = 10U;
+    if (argc > 2) {
+        cout << "too many arguments were passed!" << endl;
+    } else if (argc == 2) {
+        length_of_training = atoi(argv[1]);
+    }
+
     // eigen lib test-call
     Eigen::MatrixXd m(2, 2);
     m(0, 0) = 3;
@@ -15,6 +23,7 @@ int main()
     m(0, 1) = -1;
     m(1, 1) = m(1, 0) + m(0, 1);
     cout << m << endl;
+    cout << "***************" << endl;
 
     // body of algorithm
     NeuralNetwork n({ 2, 3, 1 });
@@ -24,7 +33,16 @@ int main()
     genData("test");
     ReadCSV("test-in", in_dat);
     ReadCSV("test-out", out_dat);
-    vector<Scalar> return_val = n.train(in_dat, out_dat);
-    
+
+    n.printWeights();
+    for (int i=0; i<length_of_training; ++i) {
+        vector<Scalar> return_val = n.train(in_dat, out_dat);
+        cout << "*********************" << endl;
+        cout << "sum of all MS error: " << accumulate(return_val.begin(), return_val.end(), 0.0) << endl;
+    }
+
+    cout << "after training *********" << endl;
+    n.printWeights();
+
     return 0;
 }
