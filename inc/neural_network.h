@@ -26,7 +26,7 @@ public:
     NeuralNetwork(vector<uint> topology, Scalar learningRate = Scalar(0.005));
 
     // function for forward propagation of data
-    void propagateForward(RowVector& input);
+    RowVector propagateForward(const RowVector& input);
 
     // function for backward propagation of errors made by neurons
     void propagateBackward(RowVector& output);
@@ -64,4 +64,5 @@ Scalar activationFunction(Scalar x);
 Scalar activationFunctionDerivative(Scalar x);
 void ReadCSV(string filename, vector<RowVector*>& data);
 void genData(string filename);
+bool float_cmp_neural(const Scalar val_in1, const Scalar val_in2, const Scalar threshold_in);
 #endif // NEURAL_H

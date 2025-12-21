@@ -43,7 +43,7 @@ NeuralNetwork::NeuralNetwork(vector<uint> topology, Scalar learningRate)
     }
 };
 
-void NeuralNetwork::propagateForward(RowVector& input)
+RowVector NeuralNetwork::propagateForward(const RowVector& input)
 {
     // set the input to input layer
     // block returns a part of the given vector or matrix
@@ -57,6 +57,8 @@ void NeuralNetwork::propagateForward(RowVector& input)
         (*neuronLayers[i]) = (*neuronLayers[i - 1]) * (*weights[i - 1]);
         neuronLayers[i]->block(0, 0, 1, topology[i]).unaryExpr(function(activationFunction));
     }
+
+    return *neuronLayers.back();
 }
 
 void NeuralNetwork::calcErrors(RowVector& output)
@@ -120,7 +122,7 @@ vector<Scalar> NeuralNetwork::train(vector<RowVector*> input_data, vector<RowVec
         cout << "Input to neural network is : " << *input_data[i] << endl;
 #endif
 
-        propagateForward(*input_data[i]);
+        (void)propagateForward(*input_data[i]);
 #ifdef DEBUG_TRAIN
         cout << "Expected output is : " << *output_data[i] << endl;
         cout << "Output produced is : " << *neuronLayers.back() << endl;
@@ -224,4 +226,9 @@ void genData(string filename)
 
     file1.close();
     file2.close();
+}
+
+bool float_cmp_neural(const Scalar val_in1, const Scalar val_in2, const Scalar threshold_in)
+{
+    return (abs(val_in1 - val_in2) < threshold_in);
 }
