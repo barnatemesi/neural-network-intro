@@ -48,5 +48,27 @@ int main(int argc, char *argv[])
     cout << "after training *********" << endl;
     n.printWeights();
 
+    cout << "******************************" << endl;
+    cout << "test with random sample ******" << endl;
+
+    constexpr Scalar test_val_x = 1.0F;
+    constexpr Scalar test_val_y = 2.0F;
+    constexpr Scalar expected_output = 14.0F; // 2 * x + 10 + y
+    constexpr Scalar epsilon = 0.5F;
+    // RowVector run_out_data(0.0F);
+    RowVector run_in_data {{test_val_x, test_val_y}};
+    RowVector run_out_data {{0.0F}};
+
+    run_out_data= n.propagateForward(run_in_data);
+
+    if (float_cmp_neural(run_out_data(0), expected_output, epsilon)) {
+        cout << "the test has passed!" << endl;
+    } else {
+        cout << "the test has failed!" << endl;
+    }
+
+    cout << "run_out_data: " << run_out_data(0) << endl;
+    cout << "end of program ***********" << endl;
+
     return 0;
 }
