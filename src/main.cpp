@@ -69,6 +69,38 @@ int main(int argc, char *argv[])
     }
 
     cout << "run_out_data: " << run_out_data(0) << endl;
+
+    /* Kalman filter training */
+    training_rate_inp = 0.005F;
+    length_of_training = 250;
+    vector<RowVector*> in_dat_kf;
+    vector<RowVector*> out_dat_kf;
+    NeuralNetwork n_kf({ 3, 4, 1 }, training_rate_inp);
+
+    ReadCSV("kf-data/SIM_KF_validation_inputs.csv", in_dat_kf);
+    ReadCSV("kf-data/SIM_KF_validation_outputs.csv", out_dat_kf);
+    
+    n_kf.printWeights();
+    for (int i=0; i<length_of_training; ++i) {
+        vector<Scalar> return_val = n_kf.train(in_dat_kf, out_dat_kf);
+        cout << "*********************" << endl;
+        Scalar sum_of_MS_error = accumulate(return_val.begin(), return_val.end(), 0.0);
+        cout << "sum of all MS error: " << sum_of_MS_error << endl;
+
+        if (sum_of_MS_error < 1.000F) {
+            cout << "exited at idx: " << i << endl;
+            break;
+        }
+        if (i == (length_of_training - 1)) {
+            cout << "no break / exit condition was triggered" << endl;
+        }
+    }
+    
+    cout << "after training *********" << endl;
+    n.printWeights();
+
+    cout << "******************************" << endl;
+
     cout << "end of program ***********" << endl;
 
     return 0;

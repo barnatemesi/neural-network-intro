@@ -2,4 +2,5 @@ eigen/
 build/
 build_prod/
 build_dev/
+kf-data/
 test*
