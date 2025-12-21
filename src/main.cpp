@@ -9,7 +9,7 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-    int length_of_training = 10U;
+    int length_of_training = 5;
     Scalar training_rate_inp = 0.005F;
     if (argc > 3) {
         cout << "too many arguments were passed!" << endl;
