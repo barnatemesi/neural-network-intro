@@ -51,9 +51,9 @@ int main(int argc, char *argv[])
     cout << "******************************" << endl;
     cout << "test with random sample ******" << endl;
 
-    constexpr Scalar test_val_x = 1.0F;
-    constexpr Scalar test_val_y = 2.0F;
-    constexpr Scalar expected_output = 14.0F; // 2 * x + 10 + y
+    constexpr Scalar test_val_x = 2.0F;
+    constexpr Scalar test_val_y = 3.0F;
+    constexpr Scalar expected_output = 2 * test_val_x + 10.0 + test_val_y; // 2 * x + 10 + y
     constexpr Scalar epsilon = 0.5F;
     // RowVector run_out_data(0.0F);
     RowVector run_in_data {{test_val_x, test_val_y}};
@@ -64,6 +64,7 @@ int main(int argc, char *argv[])
     if (float_cmp_neural(run_out_data(0), expected_output, epsilon)) {
         cout << "the test has passed!" << endl;
     } else {
+        cout << "expected value is: " << expected_output << endl;
         cout << "the test has failed!" << endl;
     }
 
