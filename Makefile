@@ -63,7 +63,7 @@ INC_DIRS = \
 
 LIBS = -lc -lm
 
-SYMBOLS = -DUNITY_FIXTURE_NO_EXTRAS
+SYMBOLS =
 
 help:
 	@echo "Usage:" \
