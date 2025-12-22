@@ -7,10 +7,16 @@
 
 using namespace std;
 
+void do_eigen_lib_test(void);
+void do_equation_based_training(void);
+void do_kf_based_training(void);
+
+int length_of_training = 5;
+Scalar training_rate_inp = 0.005F;
+
 int main(int argc, char *argv[])
 {
-    int length_of_training = 5;
-    Scalar training_rate_inp = 0.005F;
+    // pre-processing
     if (argc > 3) {
         cout << "too many arguments were passed!" << endl;
     } else if (argc == 3) {
@@ -20,6 +26,22 @@ int main(int argc, char *argv[])
         length_of_training = atoi(argv[1]);
     }
 
+    //
+    do_eigen_lib_test();
+
+    //
+    do_equation_based_training();
+
+    //
+    do_kf_based_training();
+
+    cout << "end of program ***********" << endl;
+
+    return 0;
+}
+
+void do_eigen_lib_test(void)
+{
     // eigen lib test-call
     Eigen::MatrixXd m(2, 2);
     m(0, 0) = 3;
@@ -28,8 +50,10 @@ int main(int argc, char *argv[])
     m(1, 1) = m(1, 0) + m(0, 1);
     cout << m << endl;
     cout << "***************" << endl;
+}
 
-    // body of algorithm
+void do_equation_based_training(void)
+{
     NeuralNetwork n({ 2, 3, 1 }, training_rate_inp);
     vector<RowVector*> in_dat;
     vector<RowVector*> out_dat;
@@ -69,8 +93,11 @@ int main(int argc, char *argv[])
     }
 
     cout << "run_out_data: " << run_out_data(0) << endl;
+    cout << "******************************" << endl;
+}
 
-    /* Kalman filter training */
+void do_kf_based_training(void)
+{
     training_rate_inp = 0.005F;
     length_of_training = 250;
     vector<RowVector*> in_dat_kf;
@@ -97,11 +124,7 @@ int main(int argc, char *argv[])
     }
     
     cout << "after training *********" << endl;
-    n.printWeights();
+    n_kf.printWeights();
 
     cout << "******************************" << endl;
-
-    cout << "end of program ***********" << endl;
-
-    return 0;
 }
