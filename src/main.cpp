@@ -67,11 +67,8 @@ void do_equation_based_training(void)
     constexpr Scalar test_val_y = 3.0F;
     constexpr Scalar expected_output = 2 * test_val_x + 10.0 + test_val_y; // 2 * x + 10 + y
     constexpr Scalar epsilon = 0.5F;
-    // RowVector run_out_data(0.0F);
     RowVector run_in_data {{test_val_x, test_val_y}};
     RowVector run_out_data {{0.0F}};
-
-    
     Scalar sum_of_MS_error = 0.0F;
 
     while (curr_num_of_tries < max_num_of_tries) {
@@ -116,23 +113,28 @@ void do_equation_based_training(void)
 
 void do_kf_based_training(void)
 {
+    constexpr Scalar ms_error_threshold = 0.900F;
+
     training_rate_inp = 0.005F;
     length_of_training = 250;
+
     vector<RowVector*> in_dat_kf;
     vector<RowVector*> out_dat_kf;
-    NeuralNetwork n_kf({ 3, 4, 1 }, training_rate_inp);
+    NeuralNetwork n_network_kf({ 3, 4, 1 }, training_rate_inp);
 
+    // input is such as: omega_shaft, T_mot, T_user
     ReadCSV("kf-data/SIM_KF_validation_inputs.csv", in_dat_kf);
+    // output is: T_load
     ReadCSV("kf-data/SIM_KF_validation_outputs.csv", out_dat_kf);
     
-    n_kf.printWeights();
+    n_network_kf.printWeights();
     for (int i=0; i<length_of_training; ++i) {
-        vector<Scalar> return_val = n_kf.train(in_dat_kf, out_dat_kf);
+        vector<Scalar> return_val = n_network_kf.train(in_dat_kf, out_dat_kf);
         cout << "*********************" << endl;
         Scalar sum_of_MS_error = accumulate(return_val.begin(), return_val.end(), 0.0);
         cout << "sum of all MS error: " << sum_of_MS_error << endl;
 
-        if (sum_of_MS_error < 1.000F) {
+        if (sum_of_MS_error < ms_error_threshold) {
             cout << "exited at idx: " << i << endl;
             break;
         }
@@ -142,7 +144,26 @@ void do_kf_based_training(void)
     }
     
     cout << "after training *********" << endl;
-    n_kf.printWeights();
+    n_network_kf.printWeights();
+
+    cout << "******************************" << endl;
+    cout << "test with random sample ******" << endl;
+
+    constexpr Scalar epsilon = 0.1F;
+    RowVector run_in_data {{0.0F, 100.0F, 24.0F}};
+    Scalar kf_sim_expected_val = run_in_data(1) + run_in_data(2);
+    RowVector run_out_data {{0.0F}};
+
+    run_out_data= n_network_kf.propagateForward(run_in_data);
+
+    if (float_cmp_neural(run_out_data(0), kf_sim_expected_val, epsilon)) {
+        cout << "the test has passed!" << endl;
+    } else {
+        cout << "expected value is: " << kf_sim_expected_val << endl;
+        cout << "the test has failed!" << endl;
+    }
+
+    cout << "run_out_data: " << run_out_data(0) << endl;
 
     cout << "******************************" << endl;
 }
