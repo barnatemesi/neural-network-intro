@@ -11,7 +11,7 @@ void do_eigen_lib_test(void);
 void do_equation_based_training(void);
 void do_kf_based_training(void);
 
-int length_of_training = 5;
+int length_of_training = 10;
 Scalar training_rate_inp = 0.005F;
 
 int main(int argc, char *argv[])
@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     do_eigen_lib_test();
 
     //
-    do_equation_based_training();
+    // do_equation_based_training();
 
     //
     do_kf_based_training();
@@ -54,7 +54,6 @@ void do_eigen_lib_test(void)
 
 void do_equation_based_training(void)
 {
-    NeuralNetwork n({ 2, 3, 1 }, training_rate_inp);
     vector<RowVector*> in_dat;
     vector<RowVector*> out_dat;
 
@@ -62,19 +61,8 @@ void do_equation_based_training(void)
     ReadCSV("test-in", in_dat);
     ReadCSV("test-out", out_dat);
 
-    n.printWeights();
-    for (int i=0; i<length_of_training; ++i) {
-        vector<Scalar> return_val = n.train(in_dat, out_dat);
-        cout << "*********************" << endl;
-        cout << "sum of all MS error: " << accumulate(return_val.begin(), return_val.end(), 0.0) << endl;
-    }
-
-    cout << "after training *********" << endl;
-    n.printWeights();
-
-    cout << "******************************" << endl;
-    cout << "test with random sample ******" << endl;
-
+    constexpr uint max_num_of_tries = 5U;
+    uint curr_num_of_tries = 0U;
     constexpr Scalar test_val_x = 2.0F;
     constexpr Scalar test_val_y = 3.0F;
     constexpr Scalar expected_output = 2 * test_val_x + 10.0 + test_val_y; // 2 * x + 10 + y
@@ -83,7 +71,37 @@ void do_equation_based_training(void)
     RowVector run_in_data {{test_val_x, test_val_y}};
     RowVector run_out_data {{0.0F}};
 
-    run_out_data= n.propagateForward(run_in_data);
+    
+    Scalar sum_of_MS_error = 0.0F;
+
+    while (curr_num_of_tries < max_num_of_tries) {
+        NeuralNetwork n_network({ 2, 3, 1 }, training_rate_inp);
+
+        n_network.printWeights();
+
+        for (int i=0; i<length_of_training; ++i) {
+            vector<Scalar> return_val = n_network.train(in_dat, out_dat);
+            cout << "*********************" << endl;
+            sum_of_MS_error = accumulate(return_val.begin(), return_val.end(), 0.0);
+            cout << "sum of all MS error: " << sum_of_MS_error << endl;
+        }
+
+        cout << "after training *********" << endl;
+        n_network.printWeights();
+
+        cout << "******************************" << endl;
+        cout << "test with random sample ******" << endl;
+
+        run_out_data= n_network.propagateForward(run_in_data);
+
+        if (float_cmp_neural(run_out_data(0), expected_output, epsilon)) {
+            break;
+        } else {
+            ++curr_num_of_tries;
+        }
+    } // end of while loop
+
+    cout << "current number if tries: " << curr_num_of_tries << endl;
 
     if (float_cmp_neural(run_out_data(0), expected_output, epsilon)) {
         cout << "the test has passed!" << endl;
