@@ -1,6 +1,20 @@
 # Introduction
 Motivation and ... etc.
 
+# Observations
+There is a possibility that the algorithm does not converge. In this case, the computed weights are out of a reasonable range of expected values. When the input data is not very random, the training has a higher chance of succeeding. This is true, when training on the Kalman-filter dataset.
+
+Works pretty well with linear equations. Even when increasing the complexity of the system, it struggles with non-linear systems (such as x^2 etc.).
+
+# TODO
+- Generate validation data for kalman-filter system
+- Add new methods to save / load the weight matrices -> skip the training step when valid weight matrices are successfully loaded
+- Find better training data for the kalman-filter system
+- Modernize the codebase
+- Use unique_ptr such as: vector<unique_ptr<RowVector>> neuronLayers. This avoids defining the class destructor.
+- Figure out how to use neural networks as simple filters
+- Figure out how to use neural networks as simple controllers
+
 # Dependencies
  - Eigen library (5.0.0)
  - compiler of your choice: g++ (13.3.0) / clang (18.1.13 - works but not properly tested)
