@@ -35,9 +35,16 @@ public:
     void calcErrors(RowVector& output);
 
     // function to update the weights of connections
-    void updateWeights();
+    void updateWeights(void);
 
-    void printWeights();
+    // save the weight matrices after training
+    void saveWeights(void);
+
+    // load the weight matrices in order to skip training
+    void loadWeights(void);
+
+    // as a debugging tool, print the weight matrices
+    void printWeights(void);
 
     // function to train the neural network give an array of data points
     vector<Scalar> train(vector<RowVector*> input_data, vector<RowVector*> output_data);
