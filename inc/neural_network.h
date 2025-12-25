@@ -38,10 +38,10 @@ public:
     void updateWeights(void);
 
     // save the weight matrices after training
-    void saveWeights(void);
+    void saveWeights(string filename);
 
     // load the weight matrices in order to skip training
-    void loadWeights(void);
+    void loadWeights(string filenameid);
 
     // as a debugging tool, print the weight matrices
     void printWeights(void);

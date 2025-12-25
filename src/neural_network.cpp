@@ -74,7 +74,7 @@ void NeuralNetwork::calcErrors(RowVector& output)
     }
 }
 
-void NeuralNetwork::updateWeights()
+void NeuralNetwork::updateWeights(void)
 {
     // topology.size()-1 = weights.size()
     for (uint i=0; i<topology.size() - 1; ++i) {
@@ -100,7 +100,49 @@ void NeuralNetwork::updateWeights()
     }
 }
 
-void NeuralNetwork::printWeights()
+void NeuralNetwork::saveWeights(string filename)
+{
+    ofstream file1(filename);
+    for (Matrix* p : weights) {
+        long int rows_of_given_matrix = p->rows();
+        long int cols_of_given_matrix = p->cols();
+        
+        file1 << cols_of_given_matrix << endl;
+        file1 << rows_of_given_matrix << endl;
+
+        for (uint i=0; i<cols_of_given_matrix; ++i) {
+            for (uint j=0; j<rows_of_given_matrix; ++j) {
+                file1 << p->coeff(j, i) << endl;
+            }
+        }
+    }
+
+    file1.close();
+}
+
+void NeuralNetwork::loadWeights(string filename)
+{
+    ifstream file(filename);
+    string line;
+    long int cols_of_given_matrix = 0;
+    long int rows_of_given_matrix = 0;
+
+    for (Matrix* p : weights) { // a check is missing here to check if the structure of the neural network is matching or not
+        getline(file, line, '\n');
+        cols_of_given_matrix = stoi(line);
+        getline(file, line, '\n');
+        rows_of_given_matrix = stoi(line);
+
+        for (uint i=0; i<cols_of_given_matrix; ++i) {
+            for (uint j=0; j<rows_of_given_matrix; ++j) {
+                getline(file, line, '\n');
+                p->coeffRef(j, i) = stof(line);
+            }
+        }
+    }
+}
+
+void NeuralNetwork::printWeights(void)
 {
     for (Matrix* p : weights) {
         cout << *p << endl;

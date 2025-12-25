@@ -30,10 +30,14 @@ int main(int argc, char *argv[])
     do_eigen_lib_test();
 
     //
-    // do_equation_based_training();
+#ifdef BASED_EQUATION
+    do_equation_based_training();
+#endif
 
     //
+#ifdef BASED_KF
     do_kf_based_training();
+#endif
 
     cout << "end of program ***********" << endl;
 
@@ -122,6 +126,7 @@ void do_kf_based_training(void)
     vector<RowVector*> out_dat_kf;
     NeuralNetwork n_network_kf({ 3, 4, 1 }, training_rate_inp);
 
+    // these inputs / outputs are very simple, the load just goes up to ~ 7Nm through a first-order filter
     // input is such as: omega_shaft, T_mot, T_user
     ReadCSV("kf-data/SIM_KF_validation_inputs.csv", in_dat_kf);
     // output is: T_load
@@ -146,10 +151,14 @@ void do_kf_based_training(void)
     cout << "after training *********" << endl;
     n_network_kf.printWeights();
 
+    string kf_weights_file_name = "kf_simple_weights.csv";
+    n_network_kf.saveWeights(kf_weights_file_name);
+    n_network_kf.loadWeights(kf_weights_file_name);
+
     cout << "******************************" << endl;
     cout << "test with random sample ******" << endl;
 
-    constexpr Scalar epsilon = 0.1F;
+    constexpr Scalar epsilon = 0.5F;
     RowVector run_in_data {{0.0F, 100.0F, 24.0F}};
     Scalar kf_sim_expected_val = run_in_data(1) + run_in_data(2);
     RowVector run_out_data {{0.0F}};
