@@ -50,6 +50,7 @@ public:
           smart pointers instead of usual ones like this
         */
     vector<RowVector*> neuronLayers; // stores the different layers of out network
+    // vector<unique_ptr<RowVector>> neuronLayers;
     vector<RowVector*> cacheLayers; // stores the unactivated (activation fn not yet applied) values of layers
     vector<RowVector*> deltas; // stores the error contribution of each neurons
     vector<Matrix*> weights; // the connection weights itself
