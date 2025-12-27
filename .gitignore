@@ -5,3 +5,4 @@ build_dev/
 kf-data/
 test*
 kf_*.csv
+outputs*.csv

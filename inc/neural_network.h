@@ -1,6 +1,6 @@
 #ifndef NEURAL_H
 #define NEURAL_H
-// NeuralNetwork.hpp
+
 #include <Eigen/Eigen>
 #include <iostream>
 #include <string>
@@ -8,11 +8,10 @@
 #include <functional>
 #include <fstream>
 #include <sstream>
+#include "main.h"
 
 using namespace std;
 
-// use typedefs for future ease for changing data types like : float to double
-typedef float Scalar;
 typedef Eigen::MatrixXf Matrix;
 typedef Eigen::RowVectorXf RowVector;
 typedef Eigen::VectorXf ColVector;
@@ -70,7 +69,4 @@ public:
 // User function declaration
 Scalar activationFunction(Scalar x);
 Scalar activationFunctionDerivative(Scalar x);
-void ReadCSV(string filename, vector<RowVector*>& data);
-void genData(string filename);
-bool float_cmp_neural(const Scalar val_in1, const Scalar val_in2, const Scalar threshold_in);
-#endif // NEURAL_H
+#endif // NEURAL_Hfilename

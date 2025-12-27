@@ -41,7 +41,7 @@ endif
 
 # C defines
 CXX_DEFS=-DDEBUG
-CXX_DEFS+=-DBASED_KF
+CXX_DEFS+=-DUSE_NN
 
 CXXFLAGS=-Wall
 CXXFLAGS+=-Wextra
@@ -56,6 +56,7 @@ TARGET1 = $(TARGET_BASE1)$(TARGET_EXTENSION)
 C_TEST_SOURCES = \
 src/main.cpp \
 src/neural_network.cpp \
+src/misc.cpp \
 
 INC_DIRS = \
 -Iinc \
