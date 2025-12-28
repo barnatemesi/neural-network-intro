@@ -120,7 +120,7 @@ void NeuralNetwork::saveWeights(string filename)
     file1.close();
 }
 
-void NeuralNetwork::loadWeights(string filename)
+int NeuralNetwork::loadWeights(string filename)
 {
     ifstream file(filename);
     string line;
@@ -133,6 +133,10 @@ void NeuralNetwork::loadWeights(string filename)
         getline(file, line, '\n');
         rows_of_given_matrix = stoi(line);
 
+        if ((cols_of_given_matrix != p->cols()) || (rows_of_given_matrix != p->rows())) {
+            return -1; // return -1 error code indicating mismatch in matrix sizes
+        }
+
         for (uint i=0; i<cols_of_given_matrix; ++i) {
             for (uint j=0; j<rows_of_given_matrix; ++j) {
                 getline(file, line, '\n');
@@ -140,6 +144,8 @@ void NeuralNetwork::loadWeights(string filename)
             }
         }
     }
+
+    return 0;
 }
 
 void NeuralNetwork::printWeights(void)

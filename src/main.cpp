@@ -160,6 +160,7 @@ void do_kf_based_training(void)
     ReadCSV("kf-data/SIM_KF_validation_outputs.csv", out_dat_kf);
     
     n_network_kf.printWeights();
+
     for (int i=0; i<length_of_training; ++i) {
         vector<Scalar> return_val = n_network_kf.train(in_dat_kf, out_dat_kf);
         cout << "*********************" << endl;
@@ -176,11 +177,16 @@ void do_kf_based_training(void)
     }
     
     cout << "after training *********" << endl;
+
     n_network_kf.printWeights();
 
     string kf_weights_file_name = "kf_simple_weights.csv";
     n_network_kf.saveWeights(kf_weights_file_name);
-    n_network_kf.loadWeights(kf_weights_file_name);
+
+    int ret = n_network_kf.loadWeights(kf_weights_file_name);
+    if (ret == MISMATCH_IN_SIZE) {
+        cout << "Could not load weights! Please check the NN system initialization!" << endl; // propogate error here
+    }
 
     cout << "******************************" << endl;
     cout << "test with random sample ******" << endl;
@@ -217,16 +223,20 @@ void calculate_outs_based_on_nn(string weights_file_name, string inputs_csv, str
     RowVector run_out_data;
     NeuralNetwork n_network(TOPOLOGY_KF, training_rate_inp);
 
-    n_network.loadWeights(weights_file_name);
+    int ret = n_network.loadWeights(weights_file_name);
+    if (ret == MISMATCH_IN_SIZE) {
+        cout << "Could not load weights! Please check the NN system initialization!" << endl; // propogate error here
+    }
+
     n_network.printWeights();
+
     ReadCSV(inputs_csv, in_data);
 
+    // compute outputs based on the input vector
     for (uint i=0; i<in_data.size(); ++i) {
         run_out_data = n_network.propagateForward(*in_data[i]);
         f_out_data.push_back(run_out_data.coeff(0));
     }
-
-    // cout << f_out_data[437] << endl;
 
     WriteCSV(output_csv, f_out_data);
 

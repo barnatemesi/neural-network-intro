@@ -16,6 +16,11 @@ typedef Eigen::MatrixXf Matrix;
 typedef Eigen::RowVectorXf RowVector;
 typedef Eigen::VectorXf ColVector;
 
+typedef enum {
+    MISMATCH_IN_SIZE = -1,
+    NO_ERROR = 0,
+} Error_Codes_T;
+
 // neural network implementation class!
 class NeuralNetwork {
 private:
@@ -40,7 +45,7 @@ public:
     void saveWeights(string filename);
 
     // load the weight matrices in order to skip training
-    void loadWeights(string filenameid);
+    int loadWeights(string filenameid);
 
     // as a debugging tool, print the weight matrices
     void printWeights(void);
