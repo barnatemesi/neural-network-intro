@@ -35,6 +35,14 @@ void ReadCSV(string filename, vector<RowVector*>& data)
     }
 }
 
+void DeleteData(vector<RowVector*>& data)
+{
+    for (RowVector* p : data) {
+        delete p;
+    }
+    data.clear();
+}
+
 void genData(string filename)
 {
     constexpr uint lenght_of_desired_data = 1000;

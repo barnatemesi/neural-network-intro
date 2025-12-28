@@ -8,6 +8,7 @@
 
 // User function declaration
 void ReadCSV(string filename, vector<RowVector*>& data);
+void DeleteData(vector<RowVector*>& data);
 void WriteCSV(string filename, const vector<Scalar>& data);
 void genData(string filename);
 bool float_cmp_neural(const Scalar val_in1, const Scalar val_in2, const Scalar threshold_in);

@@ -14,6 +14,9 @@ void do_equation_based_training(void);
 void do_kf_based_training(void);
 void calculate_outs_based_on_nn(string weights_file_name, string inputs_csv, string output_csv);
 
+#define TOPOLOGY_EQ             {2U, 3U, 1U}
+#define TOPOLOGY_KF             {3U, 4U, 1U}
+
 int length_of_training = 10;
 Scalar training_rate_inp = 0.005F;
 
@@ -69,6 +72,7 @@ void do_eigen_lib_test(void)
 
     cout << "row_vector_test is: " << row_vector_test[0]->coeff(0) << endl;
 
+    // post-processing
     delete row_vector_test.back();
 
     cout << "***************" << endl;
@@ -94,7 +98,7 @@ void do_equation_based_training(void)
     Scalar sum_of_MS_error = 0.0F;
 
     while (curr_num_of_tries < max_num_of_tries) {
-        NeuralNetwork n_network({ 2, 3, 1 }, training_rate_inp);
+        NeuralNetwork n_network(TOPOLOGY_EQ, training_rate_inp);
 
         n_network.printWeights();
 
@@ -130,6 +134,11 @@ void do_equation_based_training(void)
     }
 
     cout << "run_out_data: " << run_out_data(0) << endl;
+
+    // post-processing
+    DeleteData(in_dat);
+    DeleteData(out_dat);
+
     cout << "******************************" << endl;
 }
 
@@ -142,7 +151,7 @@ void do_kf_based_training(void)
 
     vector<RowVector*> in_dat_kf;
     vector<RowVector*> out_dat_kf;
-    NeuralNetwork n_network_kf({ 3, 4, 1 }, training_rate_inp);
+    NeuralNetwork n_network_kf(TOPOLOGY_KF, training_rate_inp);
 
     // these inputs / outputs are very simple, the load just goes up to ~ 7Nm through a first-order filter
     // input is such as: omega_shaft, T_mot, T_user
@@ -192,6 +201,10 @@ void do_kf_based_training(void)
 
     cout << "run_out_data: " << run_out_data(0) << endl;
 
+    // post-processing
+    DeleteData(in_dat_kf);
+    DeleteData(out_dat_kf);
+
     cout << "******************************" << endl;
 }
 
@@ -202,7 +215,7 @@ void calculate_outs_based_on_nn(string weights_file_name, string inputs_csv, str
     vector<Scalar> f_out_data;
     // vector<RowVector*> out_data;
     RowVector run_out_data;
-    NeuralNetwork n_network({ 3, 4, 1 }, training_rate_inp);
+    NeuralNetwork n_network(TOPOLOGY_KF, training_rate_inp);
 
     n_network.loadWeights(weights_file_name);
     n_network.printWeights();
@@ -216,4 +229,7 @@ void calculate_outs_based_on_nn(string weights_file_name, string inputs_csv, str
     // cout << f_out_data[437] << endl;
 
     WriteCSV(output_csv, f_out_data);
+
+    // post-processing
+    DeleteData(in_data);
 }
