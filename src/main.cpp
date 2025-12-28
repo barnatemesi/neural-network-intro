@@ -3,13 +3,19 @@
 #include <vector>
 #include <cstdlib>
 #include "main.h"
+#include "misc.h"
 #include "neural_network.h"
 
 using namespace std;
 
+// user function prototypes
 void do_eigen_lib_test(void);
 void do_equation_based_training(void);
 void do_kf_based_training(void);
+void calculate_outs_based_on_nn(string weights_file_name, string inputs_csv, string output_csv);
+
+#define TOPOLOGY_EQ             {2U, 3U, 1U}
+#define TOPOLOGY_KF             {3U, 4U, 1U}
 
 int length_of_training = 10;
 Scalar training_rate_inp = 0.005F;
@@ -30,10 +36,19 @@ int main(int argc, char *argv[])
     do_eigen_lib_test();
 
     //
-    // do_equation_based_training();
+#ifdef BASED_EQUATION
+    do_equation_based_training();
+#endif
 
     //
+#ifdef BASED_KF
     do_kf_based_training();
+#endif
+
+    //
+#ifdef USE_NN
+    calculate_outs_based_on_nn("kf_simple_weights.csv", "kf-data/SIM_KF_validation_inputs.csv", "outputs.csv");
+#endif
 
     cout << "end of program ***********" << endl;
 
@@ -49,6 +64,17 @@ void do_eigen_lib_test(void)
     m(0, 1) = -1;
     m(1, 1) = m(1, 0) + m(0, 1);
     cout << m << endl;
+
+    vector<RowVector*> row_vector_test;
+    row_vector_test.push_back(new RowVector(1));
+
+    row_vector_test[0]->coeffRef(0) = 5.0F;
+
+    cout << "row_vector_test is: " << row_vector_test[0]->coeff(0) << endl;
+
+    // post-processing
+    delete row_vector_test.back();
+
     cout << "***************" << endl;
 }
 
@@ -68,11 +94,11 @@ void do_equation_based_training(void)
     constexpr Scalar expected_output = 2 * test_val_x + 10.0 + test_val_y; // 2 * x + 10 + y
     constexpr Scalar epsilon = 0.5F;
     RowVector run_in_data {{test_val_x, test_val_y}};
-    RowVector run_out_data {{0.0F}};
+    RowVector run_out_data;
     Scalar sum_of_MS_error = 0.0F;
 
     while (curr_num_of_tries < max_num_of_tries) {
-        NeuralNetwork n_network({ 2, 3, 1 }, training_rate_inp);
+        NeuralNetwork n_network(TOPOLOGY_EQ, training_rate_inp);
 
         n_network.printWeights();
 
@@ -89,7 +115,7 @@ void do_equation_based_training(void)
         cout << "******************************" << endl;
         cout << "test with random sample ******" << endl;
 
-        run_out_data= n_network.propagateForward(run_in_data);
+        run_out_data = n_network.propagateForward(run_in_data);
 
         if (float_cmp_neural(run_out_data(0), expected_output, epsilon)) {
             break;
@@ -108,6 +134,11 @@ void do_equation_based_training(void)
     }
 
     cout << "run_out_data: " << run_out_data(0) << endl;
+
+    // post-processing
+    DeleteData(in_dat);
+    DeleteData(out_dat);
+
     cout << "******************************" << endl;
 }
 
@@ -120,8 +151,9 @@ void do_kf_based_training(void)
 
     vector<RowVector*> in_dat_kf;
     vector<RowVector*> out_dat_kf;
-    NeuralNetwork n_network_kf({ 3, 4, 1 }, training_rate_inp);
+    NeuralNetwork n_network_kf(TOPOLOGY_KF, training_rate_inp);
 
+    // these inputs / outputs are very simple, the load just goes up to ~ 7Nm through a first-order filter
     // input is such as: omega_shaft, T_mot, T_user
     ReadCSV("kf-data/SIM_KF_validation_inputs.csv", in_dat_kf);
     // output is: T_load
@@ -146,15 +178,19 @@ void do_kf_based_training(void)
     cout << "after training *********" << endl;
     n_network_kf.printWeights();
 
+    string kf_weights_file_name = "kf_simple_weights.csv";
+    n_network_kf.saveWeights(kf_weights_file_name);
+    n_network_kf.loadWeights(kf_weights_file_name);
+
     cout << "******************************" << endl;
     cout << "test with random sample ******" << endl;
 
-    constexpr Scalar epsilon = 0.1F;
+    constexpr Scalar epsilon = 0.5F;
     RowVector run_in_data {{0.0F, 100.0F, 24.0F}};
     Scalar kf_sim_expected_val = run_in_data(1) + run_in_data(2);
-    RowVector run_out_data {{0.0F}};
+    RowVector run_out_data;
 
-    run_out_data= n_network_kf.propagateForward(run_in_data);
+    run_out_data = n_network_kf.propagateForward(run_in_data);
 
     if (float_cmp_neural(run_out_data(0), kf_sim_expected_val, epsilon)) {
         cout << "the test has passed!" << endl;
@@ -165,5 +201,35 @@ void do_kf_based_training(void)
 
     cout << "run_out_data: " << run_out_data(0) << endl;
 
+    // post-processing
+    DeleteData(in_dat_kf);
+    DeleteData(out_dat_kf);
+
     cout << "******************************" << endl;
+}
+
+void calculate_outs_based_on_nn(string weights_file_name, string inputs_csv, string output_csv)
+{
+    vector<RowVector*> in_data;
+    // we make the simplification that the data is always scalar and of type float
+    vector<Scalar> f_out_data;
+    // vector<RowVector*> out_data;
+    RowVector run_out_data;
+    NeuralNetwork n_network(TOPOLOGY_KF, training_rate_inp);
+
+    n_network.loadWeights(weights_file_name);
+    n_network.printWeights();
+    ReadCSV(inputs_csv, in_data);
+
+    for (uint i=0; i<in_data.size(); ++i) {
+        run_out_data = n_network.propagateForward(*in_data[i]);
+        f_out_data.push_back(run_out_data.coeff(0));
+    }
+
+    // cout << f_out_data[437] << endl;
+
+    WriteCSV(output_csv, f_out_data);
+
+    // post-processing
+    DeleteData(in_data);
 }

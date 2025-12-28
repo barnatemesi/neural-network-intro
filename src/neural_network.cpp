@@ -41,7 +41,7 @@ NeuralNetwork::NeuralNetwork(vector<uint> topology, Scalar learningRate)
             }
         }
     }
-};
+}
 
 RowVector NeuralNetwork::propagateForward(const RowVector& input)
 {
@@ -74,7 +74,7 @@ void NeuralNetwork::calcErrors(RowVector& output)
     }
 }
 
-void NeuralNetwork::updateWeights()
+void NeuralNetwork::updateWeights(void)
 {
     // topology.size()-1 = weights.size()
     for (uint i=0; i<topology.size() - 1; ++i) {
@@ -100,7 +100,49 @@ void NeuralNetwork::updateWeights()
     }
 }
 
-void NeuralNetwork::printWeights()
+void NeuralNetwork::saveWeights(string filename)
+{
+    ofstream file1(filename);
+    for (Matrix* p : weights) {
+        long int rows_of_given_matrix = p->rows();
+        long int cols_of_given_matrix = p->cols();
+        
+        file1 << cols_of_given_matrix << endl;
+        file1 << rows_of_given_matrix << endl;
+
+        for (uint i=0; i<cols_of_given_matrix; ++i) {
+            for (uint j=0; j<rows_of_given_matrix; ++j) {
+                file1 << p->coeff(j, i) << endl;
+            }
+        }
+    }
+
+    file1.close();
+}
+
+void NeuralNetwork::loadWeights(string filename)
+{
+    ifstream file(filename);
+    string line;
+    long int cols_of_given_matrix = 0;
+    long int rows_of_given_matrix = 0;
+
+    for (Matrix* p : weights) { // a check is missing here to check if the structure of the neural network is matching or not
+        getline(file, line, '\n');
+        cols_of_given_matrix = stoi(line);
+        getline(file, line, '\n');
+        rows_of_given_matrix = stoi(line);
+
+        for (uint i=0; i<cols_of_given_matrix; ++i) {
+            for (uint j=0; j<rows_of_given_matrix; ++j) {
+                getline(file, line, '\n');
+                p->coeffRef(j, i) = stof(line);
+            }
+        }
+    }
+}
+
+void NeuralNetwork::printWeights(void)
 {
     for (Matrix* p : weights) {
         cout << *p << endl;
@@ -173,62 +215,4 @@ Scalar activationFunction(Scalar x)
 Scalar activationFunctionDerivative(Scalar x)
 {
     return 1 - tanhf(x) * tanhf(x);
-}
-
-void ReadCSV(string filename, vector<RowVector*>& data)
-{
-    data.clear();
-    ifstream file(filename);
-    string line, word;
-    // determine number of columns in file
-    getline(file, line, '\n');
-    stringstream ss(line);
-    vector<Scalar> parsed_vec;
-
-    while (getline(ss, word, ',')) {
-        parsed_vec.push_back(Scalar(stof(&word[0])));
-    }
-
-    uint cols = parsed_vec.size();
-    data.push_back(new RowVector(cols));
-
-    for (uint i=0; i<cols; i++) {
-        data.back()->coeffRef(1, i) = parsed_vec[i];
-    }
-
-    // read the file
-    if (file.is_open()) {
-        while (getline(file, line, '\n')) {
-            stringstream ss(line);
-            data.push_back(new RowVector(1, cols));
-            uint i = 0;
-            while (getline(ss, word, ',')) {
-                data.back()->coeffRef(i) = Scalar(stof(&word[0]));
-                ++i;
-            }
-        }
-    }
-}
-
-void genData(string filename)
-{
-    constexpr uint lenght_of_desired_data = 1000;
-    ofstream file1(filename + "-in");
-    ofstream file2(filename + "-out");
-
-    for (uint r=0; r<lenght_of_desired_data; r++) {
-        Scalar x = rand() / Scalar(RAND_MAX);
-        Scalar y = rand() / Scalar(RAND_MAX);
-
-        file1 << x << ", " << y << endl;
-        file2 << 2 * x + 10 + y << endl;
-    }
-
-    file1.close();
-    file2.close();
-}
-
-bool float_cmp_neural(const Scalar val_in1, const Scalar val_in2, const Scalar threshold_in)
-{
-    return (abs(val_in1 - val_in2) < threshold_in);
 }

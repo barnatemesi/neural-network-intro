@@ -40,8 +40,8 @@ CXX_COMPILER=clang++
 endif
 
 # C defines
-CXX_DEFS=-DDEBUG\
-CXX_DEFS+=-DDEBUG_TRAIN \
+CXX_DEFS=-DDEBUG
+CXX_DEFS+=-DUSE_NN
 
 CXXFLAGS=-Wall
 CXXFLAGS+=-Wextra
@@ -56,6 +56,7 @@ TARGET1 = $(TARGET_BASE1)$(TARGET_EXTENSION)
 C_TEST_SOURCES = \
 src/main.cpp \
 src/neural_network.cpp \
+src/misc.cpp \
 
 INC_DIRS = \
 -Iinc \
@@ -75,7 +76,7 @@ all: clean default
 # build and test
 default:
 	$(MKDIR) $(TARGET_DIR)
-	$(CXX_COMPILER) $(C_DEFS) $(CXXFLAGS) $(INC_DIRS) $(SYMBOLS) $(C_TEST_SOURCES) $(LIBS) -o $(TARGET_DIR)/$(TARGET1)
+	$(CXX_COMPILER) $(CXX_DEFS) $(CXXFLAGS) $(INC_DIRS) $(SYMBOLS) $(C_TEST_SOURCES) $(LIBS) -o $(TARGET_DIR)/$(TARGET1)
 
 clean:
 	$(CLEANUP) $(TARGET_DIR)/$(TARGET1)
