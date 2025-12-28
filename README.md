@@ -31,5 +31,3 @@ Works pretty well with linear equations. Even when increasing the complexity of 
 [geeks for geeks article](https://www.geeksforgeeks.org/machine-learning/ml-neural-network-implementation-in-c-from-scratch/)
 
 [eigen c++ library](https://libeigen.gitlab.io/)
-
-[semantic versioning](https://semver.org/)
