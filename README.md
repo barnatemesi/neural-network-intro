@@ -4,7 +4,7 @@
 - Implementation of using the neural network standalone (no training needed, just loading the weights)
 - Implementation of some kind of testing based on good practices: two data sets, one for training, one for validation
 - Study the Eigen library
-- Study how to data is organized
+- Study how the data is organized
 - Learn more about C++
 
 # Observations
