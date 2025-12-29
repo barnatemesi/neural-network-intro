@@ -24,10 +24,11 @@ typedef enum {
 // neural network implementation class!
 class NeuralNetwork {
 private:
-    vector<uint> topology; // topology
+    vector<uint> topology; // topology of the nn system
+    RowVector inputScaling; // pre-processing the inputs
 public:
     // constructor
-    NeuralNetwork(vector<uint> topology, Scalar learningRate = Scalar(0.005));
+    NeuralNetwork(const vector<uint>& topology, const RowVector& inputScaling, Scalar learningRate = Scalar(0.005));
 
     // function for forward propagation of data
     RowVector propagateForward(const RowVector& input);
@@ -72,6 +73,12 @@ public:
 };
 
 // User function declaration
+#ifdef ACTIVATION_FN_IS_TANH
 Scalar activationFunction(Scalar x);
 Scalar activationFunctionDerivative(Scalar x);
+#endif
+#ifdef ACTIVATION_FN_IS_SIGMOID
+#endif
+#ifdef ACTIVATION_FN_IS_RELU
+#endif
 #endif // NEURAL_Hfilename

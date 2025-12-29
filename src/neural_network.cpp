@@ -1,12 +1,12 @@
 #include "neural_network.h"
 
-NeuralNetwork::NeuralNetwork(vector<uint> topology, Scalar learningRate)
+NeuralNetwork::NeuralNetwork(const vector<uint>& topology, const RowVector& inputScaling, Scalar learningRate)
 {
 #ifdef DEBUG
     cout << "Constructor is called!" << endl;
 #endif
-
     this->topology = topology;
+    this->inputScaling = inputScaling;
     this->learningRate = learningRate;
     for (uint i=0; i<topology.size(); ++i) {
         // initialize neuron layers
@@ -45,10 +45,20 @@ NeuralNetwork::NeuralNetwork(vector<uint> topology, Scalar learningRate)
 
 RowVector NeuralNetwork::propagateForward(const RowVector& input)
 {
+    // pre-process inputs
+    if (input.size() != inputScaling.size()) {
+        cout << "unhandled error has been encountered due to size mismatch!" << endl;
+        RowVector zeroReturnVector {{0.0F}};
+        return zeroReturnVector;
+    }
+
+    RowVector scaled_input(input.size());
+    scaled_input = input.array() * inputScaling.array(); // Eigen allows assigning array expressions to matrix / vector variables
+
     // set the input to input layer
     // block returns a part of the given vector or matrix
     // block takes 4 arguments : startRow, startCol, blockRows, blockCols
-    neuronLayers.front()->block(0, 0, 1, neuronLayers.front()->size() - 1) = input;
+    neuronLayers.front()->block(0, 0, 1, neuronLayers.front()->size() - 1) = scaled_input;
 
     // propagate the data forward and then 
     // apply the activation function to your network
@@ -213,12 +223,19 @@ NeuralNetwork::~NeuralNetwork(void)
     weights.clear();
 }
 
+#ifdef ACTIVATION_FN_IS_TANH
 Scalar activationFunction(Scalar x)
 {
     return tanhf(x);
 }
-
 Scalar activationFunctionDerivative(Scalar x)
 {
     return 1 - tanhf(x) * tanhf(x);
 }
+#endif
+
+#ifdef ACTIVATION_FN_IS_SIGMOID
+#endif
+
+#ifdef ACTIVATION_FN_IS_RELU
+#endif

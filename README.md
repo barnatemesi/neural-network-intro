@@ -13,6 +13,7 @@ There is a possibility that the algorithm does not converge. In this case, the c
 Works pretty well with linear equations. Even when increasing the complexity of the system, it struggles with non-linear systems (such as x^2 etc.).
 
 # TODO
+- Implementation of input processing / normalization
 - Study how Gradient Descent optimization works / may be implemented
 - Generate validation data for kalman-filter system
 - Add new methods to save / load the weight matrices -> skip the training step when valid weight matrices are successfully loaded

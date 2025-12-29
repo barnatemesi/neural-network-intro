@@ -98,7 +98,8 @@ void do_equation_based_training(void)
     Scalar sum_of_MS_error = 0.0F;
 
     while (curr_num_of_tries < max_num_of_tries) {
-        NeuralNetwork n_network(TOPOLOGY_EQ, training_rate_inp);
+        RowVector input_scaling_data {{1.0F, 1.0F}};
+        NeuralNetwork n_network(TOPOLOGY_EQ, input_scaling_data, training_rate_inp);
 
         n_network.printWeights();
 
@@ -151,7 +152,8 @@ void do_kf_based_training(void)
 
     vector<RowVector*> in_dat_kf;
     vector<RowVector*> out_dat_kf;
-    NeuralNetwork n_network_kf(TOPOLOGY_KF, training_rate_inp);
+    RowVector input_scaling_data {{1.0F, 1.0F, 1.0F}};
+    NeuralNetwork n_network_kf(TOPOLOGY_KF, input_scaling_data, training_rate_inp);
 
     // these inputs / outputs are very simple, the load just goes up to ~ 7Nm through a first-order filter
     // input is such as: omega_shaft, T_mot, T_user
@@ -221,7 +223,8 @@ void calculate_outs_based_on_nn(string weights_file_name, string inputs_csv, str
     vector<Scalar> f_out_data;
     // vector<RowVector*> out_data;
     RowVector run_out_data;
-    NeuralNetwork n_network(TOPOLOGY_KF, training_rate_inp);
+    RowVector input_scaling_data {{1.0F, 1.0F, 1.0F}};
+    NeuralNetwork n_network(TOPOLOGY_KF, input_scaling_data, training_rate_inp);
 
     int ret = n_network.loadWeights(weights_file_name);
     if (ret == MISMATCH_IN_SIZE) {
