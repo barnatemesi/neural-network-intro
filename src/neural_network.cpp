@@ -235,7 +235,31 @@ Scalar activationFunctionDerivative(Scalar x)
 #endif
 
 #ifdef ACTIVATION_FN_IS_SIGMOID
+Scalar activationFunction(Scalar x)
+{
+    return 1 / (1 + exp(-x));
+}
+Scalar activationFunctionDerivative(Scalar x)
+{
+    return (activationFunction(x) * (1 - activationFunction(x)));
+}
 #endif
 
 #ifdef ACTIVATION_FN_IS_RELU
+Scalar activationFunction(Scalar x)
+{
+    if (x < 0.0F) {
+        return 0.0F;
+    } else {
+        return x;
+    }
+}
+Scalar activationFunctionDerivative(Scalar x)
+{
+    if (x < 0.0F) {
+        return 0.0F;
+    } else {
+        return 1.0F;
+    }
+}
 #endif

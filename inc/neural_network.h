@@ -73,12 +73,6 @@ public:
 };
 
 // User function declaration
-#ifdef ACTIVATION_FN_IS_TANH
 Scalar activationFunction(Scalar x);
 Scalar activationFunctionDerivative(Scalar x);
-#endif
-#ifdef ACTIVATION_FN_IS_SIGMOID
-#endif
-#ifdef ACTIVATION_FN_IS_RELU
-#endif
 #endif // NEURAL_Hfilename
