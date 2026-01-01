@@ -15,7 +15,7 @@ jobs:
       - name: Checkout Eigen library
         uses: actions/checkout@v4
         with:
-          repository: https://github.com/PX4/eigen
+          repository: PX4/eigen
           path: eigen
 
       - name: Compile tests
