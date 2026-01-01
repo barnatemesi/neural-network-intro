@@ -21,18 +21,8 @@ typedef enum {
     NO_ERROR = 0,
 } Error_Codes_T;
 
-// neural network implementation class!
 class NeuralNetwork {
 private:
-    vector<uint> topology; // topology of the nn system
-    RowVector inputScaling; // pre-processing the inputs
-public:
-    // constructor
-    NeuralNetwork(const vector<uint>& topology, const RowVector& inputScaling, Scalar learningRate = Scalar(0.005));
-
-    // function for forward propagation of data
-    RowVector propagateForward(const RowVector& input);
-
     // function for backward propagation of errors made by neurons
     void propagateBackward(RowVector& output);
 
@@ -41,6 +31,23 @@ public:
 
     // function to update the weights of connections
     void updateWeights(void);
+    
+    // storage objects for working of neural network
+    vector<RowVector*> neuronLayers; // stores the different layers of out network
+    // an example of a usage of unique_ptrs - vector<unique_ptr<RowVector>> neuronLayers;
+    vector<RowVector*> cacheLayers; // stores the unactivated (activation fn not yet applied) values of layers
+    vector<RowVector*> deltas; // stores the error contribution of each neurons
+    vector<Matrix*> weights; // the connection weights itself
+    Scalar learningRate;
+    vector<uint> topology; // topology of the nn system
+    RowVector inputScaling; // pre-processing the inputs
+protected:
+public:
+    // constructor
+    NeuralNetwork(const vector<uint>& topology, const RowVector& inputScaling, Scalar learningRate = Scalar(0.005));
+
+    // function for forward propagation of data
+    RowVector propagateForward(const RowVector& input);
 
     // save the weight matrices after training
     void saveWeights(string filename);
@@ -54,20 +61,6 @@ public:
     // function to train the neural network give an array of data points
     vector<Scalar> train(vector<RowVector*> input_data, vector<RowVector*> output_data);
 
-    // storage objects for working of neural network
-    /*
-          use pointers when using std::vector<Class> as std::vector<Class> calls destructor of 
-          Class as soon as it is pushed back! when we use pointers it can't do that, besides
-          it also makes our neural network class less heavy!! It would be nice if you can use
-          smart pointers instead of usual ones like this
-        */
-    vector<RowVector*> neuronLayers; // stores the different layers of out network
-    // vector<unique_ptr<RowVector>> neuronLayers;
-    vector<RowVector*> cacheLayers; // stores the unactivated (activation fn not yet applied) values of layers
-    vector<RowVector*> deltas; // stores the error contribution of each neurons
-    vector<Matrix*> weights; // the connection weights itself
-    Scalar learningRate;
-
     // destructor -> free neuronLayers, cacheLayers, weights, and deltas
     ~NeuralNetwork();
 };
@@ -75,4 +68,4 @@ public:
 // User function declaration
 Scalar activationFunction(Scalar x);
 Scalar activationFunctionDerivative(Scalar x);
-#endif // NEURAL_Hfilename
+#endif // NEURAL_H

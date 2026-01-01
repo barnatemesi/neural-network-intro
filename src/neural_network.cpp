@@ -20,7 +20,6 @@ NeuralNetwork::NeuralNetwork(const vector<uint>& topology, const RowVector& inpu
         cacheLayers.push_back(new RowVector(neuronLayers.size()));
         deltas.push_back(new RowVector(neuronLayers.size()));
 
-        // vector.back() gives the handle to recently added element
         // coeffRef gives the reference of value at that place /** Direct access to the underlying index vector */ -> this comes from eigen lib
         if (i != topology.size() - 1) {
             neuronLayers.back()->coeffRef(topology[i]) = 1.0;

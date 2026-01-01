@@ -148,11 +148,13 @@ void do_kf_based_training(void)
     constexpr Scalar ms_error_threshold = 0.900F;
 
     training_rate_inp = 0.005F;
-    length_of_training = 250;
+    length_of_training = 500;
 
     vector<RowVector*> in_dat_kf;
     vector<RowVector*> out_dat_kf;
-    RowVector input_scaling_data {{1.0F, 1.0F, 1.0F}};
+    // RowVector input_scaling_data {{1.0F/60.0F, 1.0F/10.0F, 1.0F/10.0F}};
+    RowVector input_scaling_data {{1.0F/10.0F, 1.0F/1.0F, 1.0F/1.0F}};
+    
     NeuralNetwork n_network_kf(TOPOLOGY_KF, input_scaling_data, training_rate_inp);
 
     // these inputs / outputs are very simple, the load just goes up to ~ 7Nm through a first-order filter
