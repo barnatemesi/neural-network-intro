@@ -6,3 +6,4 @@ kf-data/
 test*
 kf_*.csv
 outputs*.csv
+.vscode/
