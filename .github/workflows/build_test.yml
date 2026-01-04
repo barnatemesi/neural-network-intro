@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: PX4/eigen
-          path: ../eigen
+          path: eigen
 
       - name: Compile tests
         run: make all

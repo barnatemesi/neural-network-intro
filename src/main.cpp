@@ -2,6 +2,7 @@
 #include <Eigen/Dense>
 #include <vector>
 #include <cstdlib>
+#include <numeric>
 #include "main.h"
 #include "misc.h"
 #include "neural_network.h"
@@ -93,12 +94,15 @@ void do_equation_based_training(void)
     constexpr Scalar test_val_y = 3.0F;
     constexpr Scalar expected_output = 2 * test_val_x + 10.0 + test_val_y; // 2 * x + 10 + y
     constexpr Scalar epsilon = 0.5F;
-    RowVector run_in_data {{test_val_x, test_val_y}};
+    RowVector run_in_data(2);
+    run_in_data << test_val_x, test_val_y;
     RowVector run_out_data;
+    run_out_data << 0.0F;
     Scalar sum_of_MS_error = 0.0F;
 
     while (curr_num_of_tries < max_num_of_tries) {
-        RowVector input_scaling_data {{1.0F, 1.0F}};
+        RowVector input_scaling_data(2);
+        input_scaling_data << 1.0F, 1.0F;
         NeuralNetwork n_network(TOPOLOGY_EQ, input_scaling_data, training_rate_inp);
 
         n_network.printWeights();
@@ -153,7 +157,8 @@ void do_kf_based_training(void)
     vector<RowVector*> in_dat_kf;
     vector<RowVector*> out_dat_kf;
     // RowVector input_scaling_data {{1.0F/60.0F, 1.0F/10.0F, 1.0F/10.0F}};
-    RowVector input_scaling_data {{1.0F/10.0F, 1.0F/1.0F, 1.0F/1.0F}};
+    RowVector input_scaling_data(3);
+    input_scaling_data << 1.0F/10.0F, 1.0F/1.0F, 1.0F/1.0F;
     
     NeuralNetwork n_network_kf(TOPOLOGY_KF, input_scaling_data, training_rate_inp);
 
@@ -196,7 +201,9 @@ void do_kf_based_training(void)
     cout << "test with random sample ******" << endl;
 
     constexpr Scalar epsilon = 0.5F;
-    RowVector run_in_data {{0.0F, 100.0F, 24.0F}};
+    RowVector run_in_data(3);
+    run_in_data << 0.0F, 100.0F, 24.0F;
+
     Scalar kf_sim_expected_val = run_in_data(1) + run_in_data(2);
     RowVector run_out_data;
 
@@ -225,7 +232,8 @@ void calculate_outs_based_on_nn(string weights_file_name, string inputs_csv, str
     vector<Scalar> f_out_data;
     // vector<RowVector*> out_data;
     RowVector run_out_data;
-    RowVector input_scaling_data {{1.0F, 1.0F, 1.0F}};
+    RowVector input_scaling_data(3);
+    input_scaling_data << 1.0F, 1.0F, 1.0F;
     NeuralNetwork n_network(TOPOLOGY_KF, input_scaling_data, training_rate_inp);
 
     int ret = n_network.loadWeights(weights_file_name);

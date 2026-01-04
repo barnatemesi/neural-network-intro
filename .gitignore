@@ -1,4 +1,5 @@
 build/
+eigen/
 build_prod/
 build_dev/
 kf-data/
