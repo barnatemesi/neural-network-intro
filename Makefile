@@ -61,7 +61,7 @@ src/misc.cpp \
 
 INC_DIRS = \
 -Iinc \
--Ieigen \
+-I../eigen \
 
 LIBS = -lc -lm
 
