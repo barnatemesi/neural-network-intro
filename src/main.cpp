@@ -164,17 +164,23 @@ void do_kf_based_training(void)
 
     // these inputs / outputs are very simple, the load just goes up to ~ 7Nm through a first-order filter
     // input is such as: omega_shaft, T_mot, T_user
-    ReadCSV("kf-data/SIM_KF_validation_inputs.csv", in_dat_kf);
+    int ret = ReadCSV("kf-data/SIM_KF_validation_inputs.csv", in_dat_kf);
+    if (ret) {
+        cout << "File could not be opened!" << endl;
+    }
     // output is: T_load
-    ReadCSV("kf-data/SIM_KF_validation_outputs.csv", out_dat_kf);
+    ret = ReadCSV("kf-data/SIM_KF_validation_outputs.csv", out_dat_kf);
+    if (ret) {
+        cout << "File could not be opened!" << endl;
+    }
     
     n_network_kf.printWeights();
 
     for (int i=0; i<length_of_training; ++i) {
         vector<Scalar> return_val = n_network_kf.train(in_dat_kf, out_dat_kf);
-        cout << "*********************" << endl;
+        // cout << "*********************" << endl;
         Scalar sum_of_MS_error = accumulate(return_val.begin(), return_val.end(), 0.0);
-        cout << "sum of all MS error: " << sum_of_MS_error << endl;
+        // cout << "sum of all MS error: " << sum_of_MS_error << endl;
 
         if (sum_of_MS_error < ms_error_threshold) {
             cout << "exited at idx: " << i << endl;
@@ -192,7 +198,7 @@ void do_kf_based_training(void)
     string kf_weights_file_name = "kf_simple_weights.csv";
     n_network_kf.saveWeights(kf_weights_file_name);
 
-    int ret = n_network_kf.loadWeights(kf_weights_file_name);
+    ret = n_network_kf.loadWeights(kf_weights_file_name);
     if (ret == MISMATCH_IN_SIZE) {
         cout << "Could not load weights! Please check the NN system initialization!" << endl; // propogate error here
     }

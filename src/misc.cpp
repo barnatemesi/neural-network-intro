@@ -1,9 +1,12 @@
 #include "misc.h"
 
-void ReadCSV(string filename, vector<RowVector*>& data)
+int ReadCSV(string filename, vector<RowVector*>& data)
 {
     data.clear();
     ifstream file(filename);
+    if (!file.is_open()) {
+        return -1;
+    }
     string line, word;
     // determine number of columns in file
     getline(file, line, '\n');
@@ -33,6 +36,8 @@ void ReadCSV(string filename, vector<RowVector*>& data)
             }
         }
     }
+
+    return 0;
 }
 
 void DeleteData(vector<RowVector*>& data)
