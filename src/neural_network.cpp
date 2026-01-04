@@ -47,7 +47,9 @@ RowVector NeuralNetwork::propagateForward(const RowVector& input)
     // pre-process inputs
     if (input.size() != inputScaling.size()) {
         cout << "unhandled error has been encountered due to size mismatch!" << endl;
-        RowVector zeroReturnVector {{0.0F}};
+        RowVector zeroReturnVector(1); 
+        zeroReturnVector << 0.0F;
+
         return zeroReturnVector;
     }
 
