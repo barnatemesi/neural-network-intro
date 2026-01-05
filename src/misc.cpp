@@ -1,9 +1,12 @@
 #include "misc.h"
 
-void ReadCSV(string filename, vector<RowVector*>& data)
+int ReadCSV(string filename, vector<RowVector*>& data)
 {
     data.clear();
     ifstream file(filename);
+    if (!file.is_open()) {
+        return -1;
+    }
     string line, word;
     // determine number of columns in file
     getline(file, line, '\n');
@@ -33,6 +36,8 @@ void ReadCSV(string filename, vector<RowVector*>& data)
             }
         }
     }
+
+    return 0;
 }
 
 void DeleteData(vector<RowVector*>& data)
@@ -69,9 +74,4 @@ void WriteCSV(string filename, const vector<Scalar>& data)
         file1 << data[i] <<endl;
     }
     file1.close();
-}
-
-bool float_cmp_neural(const Scalar val_in1, const Scalar val_in2, const Scalar threshold_in)
-{
-    return (abs(val_in1 - val_in2) < threshold_in);
 }

@@ -1,8 +1,11 @@
-eigen/
 build/
+eigen/
 build_prod/
 build_dev/
-kf-data/
 test*
 kf_*.csv
 outputs*.csv
+.vscode/
+*.ods
+kf-data/SIM_KF_validation.csv
+*_copy*

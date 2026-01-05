@@ -1,0 +1,31 @@
+name: Test
+
+on:
+  push:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04 # run on the latest image only
+    steps:
+      - name: Checkout current repo
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+    
+      - name: Checkout Eigen library
+        uses: actions/checkout@v4
+        with:
+          repository: PX4/eigen
+          path: eigen
+
+      - name: Compile tests
+        run: make all
+
+      - name: Execute tests
+        run: ./build/*.out
+
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: weights-artifacts
+          path: ./*_weights.csv
