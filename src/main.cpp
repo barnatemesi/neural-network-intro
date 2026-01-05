@@ -11,9 +11,9 @@ using namespace std;
 
 // user function prototypes
 void do_eigen_lib_test(void);
-void do_equation_based_training(void);
-void do_kf_based_training(void);
-void calculate_outs_based_on_nn(string weights_file_name, string inputs_csv, string output_csv);
+int do_equation_based_training(void);
+int do_kf_based_training(void);
+int calculate_outs_based_on_nn(string weights_file_name, string inputs_csv, string output_csv);
 
 #define TOPOLOGY_EQ             {2U, 3U, 1U}
 #define TOPOLOGY_KF             {3U, 4U, 1U}
@@ -79,7 +79,7 @@ void do_eigen_lib_test(void)
     cout << "***************" << endl;
 }
 
-void do_equation_based_training(void)
+int do_equation_based_training(void)
 {
     vector<RowVector*> in_dat;
     vector<RowVector*> out_dat;
@@ -151,9 +151,11 @@ void do_equation_based_training(void)
     DeleteData(out_dat);
 
     cout << "******************************" << endl;
+
+    return 0;
 }
 
-void do_kf_based_training(void)
+int do_kf_based_training(void)
 {
     constexpr Scalar ms_error_threshold = 0.900F;
 
@@ -238,9 +240,11 @@ void do_kf_based_training(void)
     DeleteData(out_dat_kf);
 
     cout << "******************************" << endl;
+
+    return 0;
 }
 
-void calculate_outs_based_on_nn(string weights_file_name, string inputs_csv, string output_csv)
+int calculate_outs_based_on_nn(string weights_file_name, string inputs_csv, string output_csv)
 {
     vector<RowVector*> in_data;
     // we make the simplification that the data is always scalar and of type float
@@ -273,4 +277,6 @@ void calculate_outs_based_on_nn(string weights_file_name, string inputs_csv, str
 
     // post-processing
     DeleteData(in_data);
+
+    return 0;
 }
