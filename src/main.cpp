@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 
     //
 #ifdef USE_NN
-    calculate_outs_based_on_nn("kf_simple_weights.csv", "kf-data/SIM_KF_validation_inputs.csv", "outputs.csv");
+    calculate_outs_based_on_nn("kf_simple_weights.csv", "data/SIM_KF_validation_inputs.csv", "outputs.csv");
 #endif
 
     cout << "end of program ***********" << endl;
@@ -172,8 +172,8 @@ int do_kf_based_training(void)
 
     // these inputs / outputs are very simple, the load just goes up to ~ 7Nm through a first-order filter
     // input is such as: omega_shaft, T_mot, T_user
-    string input_data_csv = "kf-data/SIM_KF_validation_inputs.csv";
-    string output_data_csv = "kf-data/SIM_KF_validation_outputs.csv";
+    string input_data_csv = "data/SIM_KF_validation_inputs.csv";
+    string output_data_csv = "data/SIM_KF_validation_outputs.csv";
     int ret = ReadCSV(input_data_csv, in_dat_kf);
     if (ret) {
         cout << "File could not be opened! " << input_data_csv << endl;
