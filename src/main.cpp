@@ -85,8 +85,14 @@ void do_equation_based_training(void)
     vector<RowVector*> out_dat;
 
     genData("test");
-    ReadCSV("test-in", in_dat);
-    ReadCSV("test-out", out_dat);
+    int ret = ReadCSV("test-in", in_dat);
+    if (ret) {
+        cout << "File could not be opened!" << endl;
+    }
+    ret = ReadCSV("test-out", out_dat);
+    if (ret) {
+        cout << "File could not be opened!" << endl;
+    }
 
     constexpr uint max_num_of_tries = 5U;
     uint curr_num_of_tries = 0U;
@@ -164,14 +170,16 @@ void do_kf_based_training(void)
 
     // these inputs / outputs are very simple, the load just goes up to ~ 7Nm through a first-order filter
     // input is such as: omega_shaft, T_mot, T_user
-    int ret = ReadCSV("kf-data/SIM_KF_validation_inputs.csv", in_dat_kf);
+    string input_data_csv = "kf-data/SIM_KF_validation_inputs.csv";
+    string output_data_csv = "kf-data/SIM_KF_validation_outputs.csv";
+    int ret = ReadCSV(input_data_csv, in_dat_kf);
     if (ret) {
-        cout << "File could not be opened!" << endl;
+        cout << "File could not be opened! " << input_data_csv << endl;
     }
     // output is: T_load
-    ret = ReadCSV("kf-data/SIM_KF_validation_outputs.csv", out_dat_kf);
+    ret = ReadCSV(output_data_csv, out_dat_kf);
     if (ret) {
-        cout << "File could not be opened!" << endl;
+        cout << "File could not be opened! " << output_data_csv << endl;
     }
     
     n_network_kf.printWeights();
@@ -249,7 +257,10 @@ void calculate_outs_based_on_nn(string weights_file_name, string inputs_csv, str
 
     n_network.printWeights();
 
-    ReadCSV(inputs_csv, in_data);
+    ret = ReadCSV(inputs_csv, in_data);
+    if (ret) {
+        cout << "File could not be opened!" << endl;
+    }
 
     // compute outputs based on the input vector
     for (uint i=0; i<in_data.size(); ++i) {
