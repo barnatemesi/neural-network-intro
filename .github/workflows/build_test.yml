@@ -28,4 +28,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: weights-artifacts
-          path: *_weights.csv
+          path: ./*_weights.csv
