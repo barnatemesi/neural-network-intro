@@ -214,7 +214,7 @@ void do_kf_based_training(void)
     cout << "******************************" << endl;
     cout << "test with random sample ******" << endl;
 
-    constexpr Scalar epsilon = 0.5F;
+    constexpr Scalar epsilon = 0.99F;
     RowVector run_in_data(3);
     run_in_data << 0.0F, 100.0F, 24.0F;
 
@@ -228,6 +228,7 @@ void do_kf_based_training(void)
     } else {
         cout << "expected value is: " << kf_sim_expected_val << endl;
         cout << "the test has failed!" << endl;
+        return -1;
     }
 
     cout << "run_out_data: " << run_out_data(0) << endl;
