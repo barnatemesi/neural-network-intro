@@ -7,6 +7,9 @@
 - Study how the data is organized
 - Learn more about C++
 
+# Overview of the algorithm
+![plot][./docs/nn-structure.jpg]
+
 # Observations
 There is a possibility that the algorithm does not converge. In this case, the computed weights are out of a reasonable range of expected values. When the input data is not very random, the training has a higher chance of succeeding. This is true, when training on the Kalman-filter dataset.
 
