@@ -75,8 +75,3 @@ void WriteCSV(string filename, const vector<Scalar>& data)
     }
     file1.close();
 }
-
-bool float_cmp_neural(const Scalar val_in1, const Scalar val_in2, const Scalar threshold_in)
-{
-    return (abs(val_in1 - val_in2) < threshold_in);
-}

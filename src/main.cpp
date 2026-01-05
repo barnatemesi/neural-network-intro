@@ -128,7 +128,7 @@ int do_equation_based_training(void)
 
         run_out_data = n_network.propagateForward(run_in_data);
 
-        if (float_cmp_neural(run_out_data(0), expected_output, epsilon)) {
+        if (NeuralNetwork::float_cmp(run_out_data(0), expected_output, epsilon)) {
             break;
         } else {
             ++curr_num_of_tries;
@@ -137,7 +137,7 @@ int do_equation_based_training(void)
 
     cout << "current number if tries: " << curr_num_of_tries << endl;
 
-    if (float_cmp_neural(run_out_data(0), expected_output, epsilon)) {
+    if (NeuralNetwork::float_cmp(run_out_data(0), expected_output, epsilon)) {
         cout << "the test has passed!" << endl;
     } else {
         cout << "expected value is: " << expected_output << endl;
@@ -225,7 +225,7 @@ int do_kf_based_training(void)
 
     run_out_data = n_network_kf.propagateForward(run_in_data);
 
-    if (float_cmp_neural(run_out_data(0), kf_sim_expected_val, epsilon)) {
+    if (NeuralNetwork::float_cmp(run_out_data(0), kf_sim_expected_val, epsilon)) {
         cout << "the test has passed!" << endl;
     } else {
         cout << "expected value is: " << kf_sim_expected_val << endl;

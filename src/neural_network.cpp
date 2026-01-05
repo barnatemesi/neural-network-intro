@@ -224,30 +224,35 @@ NeuralNetwork::~NeuralNetwork(void)
     weights.clear();
 }
 
+bool NeuralNetwork::float_cmp(const Scalar val_in1, const Scalar val_in2, const Scalar threshold_in)
+{
+    return (abs(val_in1 - val_in2) < threshold_in);
+}
+
 #ifdef ACTIVATION_FN_IS_TANH
-Scalar activationFunction(Scalar x)
+Scalar NeuralNetwork::activationFunction(Scalar x)
 {
     return tanhf(x);
 }
-Scalar activationFunctionDerivative(Scalar x)
+Scalar NeuralNetwork::activationFunctionDerivative(Scalar x)
 {
     return 1 - tanhf(x) * tanhf(x);
 }
 #endif
 
 #ifdef ACTIVATION_FN_IS_SIGMOID
-Scalar activationFunction(Scalar x)
+Scalar NeuralNetwork::activationFunction(Scalar x)
 {
     return 1 / (1 + exp(-x));
 }
-Scalar activationFunctionDerivative(Scalar x)
+Scalar NeuralNetwork::activationFunctionDerivative(Scalar x)
 {
     return (activationFunction(x) * (1 - activationFunction(x)));
 }
 #endif
 
 #ifdef ACTIVATION_FN_IS_RELU
-Scalar activationFunction(Scalar x)
+Scalar NeuralNetwork::activationFunction(Scalar x)
 {
     if (x < 0.0F) {
         return 0.0F;
@@ -255,7 +260,7 @@ Scalar activationFunction(Scalar x)
         return x;
     }
 }
-Scalar activationFunctionDerivative(Scalar x)
+Scalar NeuralNetwork::activationFunctionDerivative(Scalar x)
 {
     if (x < 0.0F) {
         return 0.0F;

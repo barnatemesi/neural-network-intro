@@ -63,9 +63,10 @@ public:
 
     // destructor -> free neuronLayers, cacheLayers, weights, and deltas
     ~NeuralNetwork();
-};
 
-// User function declaration
-Scalar activationFunction(Scalar x);
-Scalar activationFunctionDerivative(Scalar x);
+    // static methods
+    static Scalar activationFunction(Scalar x);
+    static Scalar activationFunctionDerivative(Scalar x);
+    static bool float_cmp(const Scalar val_in1, const Scalar val_in2, const Scalar threshold_in);
+};
 #endif // NEURAL_H
