@@ -3,6 +3,7 @@
 #include <vector>
 #include <cstdlib>
 #include <numeric>
+#include <string>
 #include "main.h"
 #include "misc.h"
 #include "neural_network.h"
@@ -23,32 +24,53 @@ Scalar training_rate_inp = 0.005F;
 
 int main(int argc, char *argv[])
 {
-    // pre-processing
-    if (argc > 3) {
-        cout << "too many arguments were passed!" << endl;
-    } else if (argc == 3) {
-        training_rate_inp = atof(argv[2]);
-        length_of_training = atoi(argv[1]);
-    } else if (argc == 2) {
-        length_of_training = atoi(argv[1]);
+    std::string input_scaling_vector;
+    // handling of input arguments
+    if (argc > 1) {
+        for (int i=1; i<argc; ++i){
+            if (strcmp(argv[i], "-h")==0 || strcmp(argv[i], "--help")==0) {
+                cout << "help is triggered!" << endl;
+                cout << "-r, --rate: add desired training rate as float!" << endl;
+                cout << "-l, --len: add desired length of training!" << endl;
+                cout << "-s, --scaling: add desired input scaling vector! must match input vector dimensions! Comma separated list!" << endl;
+
+                return 0;
+            }
+            if (strcmp(argv[i], "-r")==0 || strcmp(argv[i], "--rate")==0) {
+                if ((i+1) < argc) {
+                    training_rate_inp = atof(argv[i+1]);
+                }
+                cout << "chosen training_rate_inp " << training_rate_inp << endl;
+            }
+            if (strcmp(argv[i], "-l")==0 || strcmp(argv[i], "--len")==0) {
+                if ((i+1) < argc) {
+                    length_of_training = atof(argv[i+1]);
+                }
+                cout << "chosen length_of_training " << length_of_training << endl;
+            }
+            if (strcmp(argv[i], "-s")==0 || strcmp(argv[i], "--scaling")==0) {
+                if ((i+1) < argc) {
+                    input_scaling_vector = argv[i+1];
+                }
+                cout << "chosen input_scaling_vector " << input_scaling_vector << endl;
+            }
+        }
     }
 
-    //
+#ifdef DEBUG
     do_eigen_lib_test();
+#endif
 
-    //
 #ifdef BASED_EQUATION
     do_equation_based_training();
 #endif
 
-    //
 #ifdef BASED_KF
     do_kf_based_training();
 #endif
 
-    //
 #ifdef USE_NN
-    calculate_outs_based_on_nn("kf_simple_weights.csv", "kf-data/SIM_KF_validation_inputs.csv", "outputs.csv");
+    calculate_outs_based_on_nn("kf_simple_weights.csv", "data/SIM_KF_validation_inputs.csv", "outputs.csv");
 #endif
 
     cout << "end of program ***********" << endl;
@@ -172,8 +194,8 @@ int do_kf_based_training(void)
 
     // these inputs / outputs are very simple, the load just goes up to ~ 7Nm through a first-order filter
     // input is such as: omega_shaft, T_mot, T_user
-    string input_data_csv = "kf-data/SIM_KF_validation_inputs.csv";
-    string output_data_csv = "kf-data/SIM_KF_validation_outputs.csv";
+    string input_data_csv = "data/SIM_KF_validation_inputs.csv";
+    string output_data_csv = "data/SIM_KF_validation_outputs.csv";
     int ret = ReadCSV(input_data_csv, in_dat_kf);
     if (ret) {
         cout << "File could not be opened! " << input_data_csv << endl;
