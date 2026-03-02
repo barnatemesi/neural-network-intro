@@ -1,6 +1,7 @@
 #include "misc.h"
+#include <random>
 
-int ReadCSV(string filename, vector<RowVector*>& data)
+int ReadCSV(const string& filename, vector<RowVector*>& data)
 {
     data.clear();
     ifstream file(filename);
@@ -21,7 +22,7 @@ int ReadCSV(string filename, vector<RowVector*>& data)
     data.push_back(new RowVector(cols));
 
     for (uint i=0; i<cols; i++) {
-        data.back()->coeffRef(1, i) = parsed_vec[i];
+        data.back()->coeffRef(0, i) = parsed_vec[i];
     }
 
     // read the file
@@ -48,15 +49,18 @@ void DeleteData(vector<RowVector*>& data)
     data.clear();
 }
 
-void genData(string filename)
+void genData(const string& filename)
 {
     constexpr uint lenght_of_desired_data = 1000;
     ofstream file1(filename + "-in");
     ofstream file2(filename + "-out");
 
+    static mt19937 rng(random_device{}());
+    uniform_real_distribution<Scalar> dist(0.0F, 1.0F);
+
     for (uint r=0; r<lenght_of_desired_data; r++) {
-        Scalar x = rand() / Scalar(RAND_MAX);
-        Scalar y = rand() / Scalar(RAND_MAX);
+        Scalar x = dist(rng);
+        Scalar y = dist(rng);
 
         file1 << x << ", " << y << endl;
         file2 << 2 * x + 10 + y << endl;
@@ -66,9 +70,8 @@ void genData(string filename)
     file2.close();
 }
 
-void WriteCSV(string filename, const vector<Scalar>& data)
+void WriteCSV(const string& filename, const vector<Scalar>& data)
 {
-    (void)data;
     ofstream file1(filename);
     for (uint i=0; i<data.size(); ++i) {
         file1 << data[i] <<endl;

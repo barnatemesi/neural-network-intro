@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <memory>
 #include <functional>
 #include <fstream>
 #include <sstream>
@@ -33,11 +34,10 @@ private:
     void updateWeights(void);
     
     // storage objects for working of neural network
-    vector<RowVector*> neuronLayers; // stores the different layers of out network
-    // an example of a usage of unique_ptrs - vector<unique_ptr<RowVector>> neuronLayers;
-    vector<RowVector*> cacheLayers; // stores the unactivated (activation fn not yet applied) values of layers
-    vector<RowVector*> deltas; // stores the error contribution of each neurons
-    vector<Matrix*> weights; // the connection weights itself
+    vector<unique_ptr<RowVector>> neuronLayers; // stores the different layers of out network
+    vector<unique_ptr<RowVector>> cacheLayers; // stores the unactivated (activation fn not yet applied) values of layers
+    vector<unique_ptr<RowVector>> deltas; // stores the error contribution of each neurons
+    vector<unique_ptr<Matrix>> weights; // the connection weights itself
     Scalar learningRate;
     vector<uint> topology; // topology of the nn system
     RowVector inputScaling; // pre-processing the inputs
@@ -50,18 +50,17 @@ public:
     RowVector propagateForward(const RowVector& input);
 
     // save the weight matrices after training
-    void saveWeights(string filename);
+    void saveWeights(const string& filename);
 
     // load the weight matrices in order to skip training
-    int loadWeights(string filenameid);
+    int loadWeights(const string& filenameid);
 
     // as a debugging tool, print the weight matrices
     void printWeights(void);
 
     // function to train the neural network give an array of data points
-    vector<Scalar> train(vector<RowVector*> input_data, vector<RowVector*> output_data);
+    vector<Scalar> train(const vector<RowVector*>& input_data, const vector<RowVector*>& output_data);
 
-    // destructor -> free neuronLayers, cacheLayers, weights, and deltas
     ~NeuralNetwork();
 
     // static methods

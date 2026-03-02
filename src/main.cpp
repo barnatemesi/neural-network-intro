@@ -14,17 +14,37 @@ using namespace std;
 void do_eigen_lib_test(void);
 int do_equation_based_training(void);
 int do_kf_based_training(void);
-int calculate_outs_based_on_nn(string weights_file_name, string inputs_csv, string output_csv);
+int calculate_outs_based_on_nn(const string& weights_file_name, const string& inputs_csv, const string& output_csv);
 
 #define TOPOLOGY_EQ             {2U, 3U, 1U}
 #define TOPOLOGY_KF             {3U, 4U, 1U}
 
 int length_of_training = 10;
 Scalar training_rate_inp = 0.005F;
+string input_scaling_vector;
+
+RowVector parseScalingVector(const string& csv_str, uint size)
+{
+    RowVector scaling(size);
+    if (csv_str.empty()) {
+        scaling.setOnes();
+        return scaling;
+    }
+    stringstream ss(csv_str);
+    string token;
+    uint idx = 0;
+    while (getline(ss, token, ',') && idx < size) {
+        scaling(idx) = stof(token);
+        ++idx;
+    }
+    for (; idx < size; ++idx) {
+        scaling(idx) = 1.0F;
+    }
+    return scaling;
+}
 
 int main(int argc, char *argv[])
 {
-    std::string input_scaling_vector;
     // handling of input arguments
     if (argc > 1) {
         for (int i=1; i<argc; ++i){
@@ -44,7 +64,7 @@ int main(int argc, char *argv[])
             }
             if (strcmp(argv[i], "-l")==0 || strcmp(argv[i], "--len")==0) {
                 if ((i+1) < argc) {
-                    length_of_training = atof(argv[i+1]);
+                    length_of_training = atoi(argv[i+1]);
                 }
                 cout << "chosen length_of_training " << length_of_training << endl;
             }
@@ -110,10 +130,12 @@ int do_equation_based_training(void)
     int ret = ReadCSV("test-in", in_dat);
     if (ret) {
         cout << "File could not be opened!" << endl;
+        return -1;
     }
     ret = ReadCSV("test-out", out_dat);
     if (ret) {
         cout << "File could not be opened!" << endl;
+        return -1;
     }
 
     constexpr uint max_num_of_tries = 5U;
@@ -129,8 +151,7 @@ int do_equation_based_training(void)
     Scalar sum_of_MS_error = 0.0F;
 
     while (curr_num_of_tries < max_num_of_tries) {
-        RowVector input_scaling_data(2);
-        input_scaling_data << 1.0F, 1.0F;
+        RowVector input_scaling_data = parseScalingVector(input_scaling_vector, 2);
         NeuralNetwork n_network(TOPOLOGY_EQ, input_scaling_data, training_rate_inp);
 
         n_network.printWeights();
@@ -181,16 +202,14 @@ int do_kf_based_training(void)
 {
     constexpr Scalar ms_error_threshold = 0.900F;
 
-    training_rate_inp = 0.005F;
-    length_of_training = 500;
+    const Scalar kf_training_rate = 0.005F;
+    const int kf_length_of_training = 500;
 
     vector<RowVector*> in_dat_kf;
     vector<RowVector*> out_dat_kf;
-    // RowVector input_scaling_data {{1.0F/60.0F, 1.0F/10.0F, 1.0F/10.0F}};
-    RowVector input_scaling_data(3);
-    input_scaling_data << 1.0F/10.0F, 1.0F/1.0F, 1.0F/1.0F;
+    RowVector input_scaling_data = parseScalingVector(input_scaling_vector, 3);
     
-    NeuralNetwork n_network_kf(TOPOLOGY_KF, input_scaling_data, training_rate_inp);
+    NeuralNetwork n_network_kf(TOPOLOGY_KF, input_scaling_data, kf_training_rate);
 
     // these inputs / outputs are very simple, the load just goes up to ~ 7Nm through a first-order filter
     // input is such as: omega_shaft, T_mot, T_user
@@ -199,16 +218,18 @@ int do_kf_based_training(void)
     int ret = ReadCSV(input_data_csv, in_dat_kf);
     if (ret) {
         cout << "File could not be opened! " << input_data_csv << endl;
+        return -1;
     }
     // output is: T_load
     ret = ReadCSV(output_data_csv, out_dat_kf);
     if (ret) {
         cout << "File could not be opened! " << output_data_csv << endl;
+        return -1;
     }
     
     n_network_kf.printWeights();
 
-    for (int i=0; i<length_of_training; ++i) {
+    for (int i=0; i<kf_length_of_training; ++i) {
         vector<Scalar> return_val = n_network_kf.train(in_dat_kf, out_dat_kf);
         // cout << "*********************" << endl;
         Scalar sum_of_MS_error = accumulate(return_val.begin(), return_val.end(), 0.0);
@@ -218,7 +239,7 @@ int do_kf_based_training(void)
             cout << "exited at idx: " << i << endl;
             break;
         }
-        if (i == (length_of_training - 1)) {
+        if (i == (kf_length_of_training - 1)) {
             cout << "no break / exit condition was triggered" << endl;
         }
     }
@@ -232,7 +253,10 @@ int do_kf_based_training(void)
 
     ret = n_network_kf.loadWeights(kf_weights_file_name);
     if (ret == MISMATCH_IN_SIZE) {
-        cout << "Could not load weights! Please check the NN system initialization!" << endl; // propogate error here
+        cout << "Could not load weights! Please check the NN system initialization!" << endl;
+        DeleteData(in_dat_kf);
+        DeleteData(out_dat_kf);
+        return -1;
     }
 
     cout << "******************************" << endl;
@@ -266,20 +290,20 @@ int do_kf_based_training(void)
     return 0;
 }
 
-int calculate_outs_based_on_nn(string weights_file_name, string inputs_csv, string output_csv)
+int calculate_outs_based_on_nn(const string& weights_file_name, const string& inputs_csv, const string& output_csv)
 {
     vector<RowVector*> in_data;
     // we make the simplification that the data is always scalar and of type float
     vector<Scalar> f_out_data;
     // vector<RowVector*> out_data;
     RowVector run_out_data;
-    RowVector input_scaling_data(3);
-    input_scaling_data << 1.0F, 1.0F, 1.0F;
+    RowVector input_scaling_data = parseScalingVector(input_scaling_vector, 3);
     NeuralNetwork n_network(TOPOLOGY_KF, input_scaling_data, training_rate_inp);
 
     int ret = n_network.loadWeights(weights_file_name);
     if (ret == MISMATCH_IN_SIZE) {
-        cout << "Could not load weights! Please check the NN system initialization!" << endl; // propogate error here
+        cout << "Could not load weights! Please check the NN system initialization!" << endl;
+        return -1;
     }
 
     n_network.printWeights();
@@ -287,6 +311,7 @@ int calculate_outs_based_on_nn(string weights_file_name, string inputs_csv, stri
     ret = ReadCSV(inputs_csv, in_data);
     if (ret) {
         cout << "File could not be opened!" << endl;
+        return -1;
     }
 
     // compute outputs based on the input vector
