@@ -21,10 +21,30 @@ int calculate_outs_based_on_nn(const string& weights_file_name, const string& in
 
 int length_of_training = 10;
 Scalar training_rate_inp = 0.005F;
+string input_scaling_vector;
+
+RowVector parseScalingVector(const string& csv_str, uint size)
+{
+    RowVector scaling(size);
+    if (csv_str.empty()) {
+        scaling.setOnes();
+        return scaling;
+    }
+    stringstream ss(csv_str);
+    string token;
+    uint idx = 0;
+    while (getline(ss, token, ',') && idx < size) {
+        scaling(idx) = stof(token);
+        ++idx;
+    }
+    for (; idx < size; ++idx) {
+        scaling(idx) = 1.0F;
+    }
+    return scaling;
+}
 
 int main(int argc, char *argv[])
 {
-    std::string input_scaling_vector;
     // handling of input arguments
     if (argc > 1) {
         for (int i=1; i<argc; ++i){
@@ -131,8 +151,7 @@ int do_equation_based_training(void)
     Scalar sum_of_MS_error = 0.0F;
 
     while (curr_num_of_tries < max_num_of_tries) {
-        RowVector input_scaling_data(2);
-        input_scaling_data << 1.0F, 1.0F;
+        RowVector input_scaling_data = parseScalingVector(input_scaling_vector, 2);
         NeuralNetwork n_network(TOPOLOGY_EQ, input_scaling_data, training_rate_inp);
 
         n_network.printWeights();
@@ -188,9 +207,7 @@ int do_kf_based_training(void)
 
     vector<RowVector*> in_dat_kf;
     vector<RowVector*> out_dat_kf;
-    // RowVector input_scaling_data {{1.0F/60.0F, 1.0F/10.0F, 1.0F/10.0F}};
-    RowVector input_scaling_data(3);
-    input_scaling_data << 1.0F/10.0F, 1.0F/1.0F, 1.0F/1.0F;
+    RowVector input_scaling_data = parseScalingVector(input_scaling_vector, 3);
     
     NeuralNetwork n_network_kf(TOPOLOGY_KF, input_scaling_data, kf_training_rate);
 
@@ -280,8 +297,7 @@ int calculate_outs_based_on_nn(const string& weights_file_name, const string& in
     vector<Scalar> f_out_data;
     // vector<RowVector*> out_data;
     RowVector run_out_data;
-    RowVector input_scaling_data(3);
-    input_scaling_data << 1.0F, 1.0F, 1.0F;
+    RowVector input_scaling_data = parseScalingVector(input_scaling_vector, 3);
     NeuralNetwork n_network(TOPOLOGY_KF, input_scaling_data, training_rate_inp);
 
     int ret = n_network.loadWeights(weights_file_name);
