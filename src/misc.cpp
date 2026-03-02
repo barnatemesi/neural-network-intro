@@ -21,7 +21,7 @@ int ReadCSV(string filename, vector<RowVector*>& data)
     data.push_back(new RowVector(cols));
 
     for (uint i=0; i<cols; i++) {
-        data.back()->coeffRef(1, i) = parsed_vec[i];
+        data.back()->coeffRef(0, i) = parsed_vec[i];
     }
 
     // read the file
@@ -68,7 +68,6 @@ void genData(string filename)
 
 void WriteCSV(string filename, const vector<Scalar>& data)
 {
-    (void)data;
     ofstream file1(filename);
     for (uint i=0; i<data.size(); ++i) {
         file1 << data[i] <<endl;

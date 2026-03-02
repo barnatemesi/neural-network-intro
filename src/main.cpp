@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
             }
             if (strcmp(argv[i], "-l")==0 || strcmp(argv[i], "--len")==0) {
                 if ((i+1) < argc) {
-                    length_of_training = atof(argv[i+1]);
+                    length_of_training = atoi(argv[i+1]);
                 }
                 cout << "chosen length_of_training " << length_of_training << endl;
             }
@@ -110,10 +110,12 @@ int do_equation_based_training(void)
     int ret = ReadCSV("test-in", in_dat);
     if (ret) {
         cout << "File could not be opened!" << endl;
+        return -1;
     }
     ret = ReadCSV("test-out", out_dat);
     if (ret) {
         cout << "File could not be opened!" << endl;
+        return -1;
     }
 
     constexpr uint max_num_of_tries = 5U;
@@ -199,11 +201,13 @@ int do_kf_based_training(void)
     int ret = ReadCSV(input_data_csv, in_dat_kf);
     if (ret) {
         cout << "File could not be opened! " << input_data_csv << endl;
+        return -1;
     }
     // output is: T_load
     ret = ReadCSV(output_data_csv, out_dat_kf);
     if (ret) {
         cout << "File could not be opened! " << output_data_csv << endl;
+        return -1;
     }
     
     n_network_kf.printWeights();
@@ -232,7 +236,10 @@ int do_kf_based_training(void)
 
     ret = n_network_kf.loadWeights(kf_weights_file_name);
     if (ret == MISMATCH_IN_SIZE) {
-        cout << "Could not load weights! Please check the NN system initialization!" << endl; // propogate error here
+        cout << "Could not load weights! Please check the NN system initialization!" << endl;
+        DeleteData(in_dat_kf);
+        DeleteData(out_dat_kf);
+        return -1;
     }
 
     cout << "******************************" << endl;
@@ -279,7 +286,8 @@ int calculate_outs_based_on_nn(string weights_file_name, string inputs_csv, stri
 
     int ret = n_network.loadWeights(weights_file_name);
     if (ret == MISMATCH_IN_SIZE) {
-        cout << "Could not load weights! Please check the NN system initialization!" << endl; // propogate error here
+        cout << "Could not load weights! Please check the NN system initialization!" << endl;
+        return -1;
     }
 
     n_network.printWeights();
@@ -287,6 +295,7 @@ int calculate_outs_based_on_nn(string weights_file_name, string inputs_csv, stri
     ret = ReadCSV(inputs_csv, in_data);
     if (ret) {
         cout << "File could not be opened!" << endl;
+        return -1;
     }
 
     // compute outputs based on the input vector

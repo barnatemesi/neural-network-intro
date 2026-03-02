@@ -17,8 +17,8 @@ NeuralNetwork::NeuralNetwork(const vector<uint>& topology, const RowVector& inpu
             neuronLayers.push_back(new RowVector(topology[i] + 1));
 
         // initialize cache and delta vectors
-        cacheLayers.push_back(new RowVector(neuronLayers.size()));
-        deltas.push_back(new RowVector(neuronLayers.size()));
+        cacheLayers.push_back(new RowVector(neuronLayers.back()->size()));
+        deltas.push_back(new RowVector(neuronLayers.back()->size()));
 
         // coeffRef gives the reference of value at that place /** Direct access to the underlying index vector */ -> this comes from eigen lib
         if (i != topology.size() - 1) {
@@ -66,7 +66,8 @@ RowVector NeuralNetwork::propagateForward(const RowVector& input)
     // unaryExpr applies the given function to all elements of CURRENT_LAYER
     for (uint i=1; i<topology.size(); ++i) {
         (*neuronLayers[i]) = (*neuronLayers[i - 1]) * (*weights[i - 1]);
-        neuronLayers[i]->block(0, 0, 1, topology[i]).unaryExpr(function(activationFunction));
+        neuronLayers[i]->block(0, 0, 1, topology[i]) =
+            neuronLayers[i]->block(0, 0, 1, topology[i]).unaryExpr(function(activationFunction));
     }
 
     return *neuronLayers.back();
@@ -134,6 +135,9 @@ void NeuralNetwork::saveWeights(string filename)
 int NeuralNetwork::loadWeights(string filename)
 {
     ifstream file(filename);
+    if (!file.is_open()) {
+        return MISMATCH_IN_SIZE;
+    }
     string line;
     long int cols_of_given_matrix = 0;
     long int rows_of_given_matrix = 0;
