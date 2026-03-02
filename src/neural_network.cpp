@@ -12,13 +12,13 @@ NeuralNetwork::NeuralNetwork(const vector<uint>& topology, const RowVector& inpu
         // initialize neuron layers
         // we add an extra bias neuron to each layer (vector), except for the output one
         if (i == topology.size() - 1)
-            neuronLayers.push_back(new RowVector(topology[i])); // we are using vectors here as layors and not 2d matrices, we are using stohastic gradient descent
+            neuronLayers.push_back(make_unique<RowVector>(topology[i]));
         else
-            neuronLayers.push_back(new RowVector(topology[i] + 1));
+            neuronLayers.push_back(make_unique<RowVector>(topology[i] + 1));
 
         // initialize cache and delta vectors
-        cacheLayers.push_back(new RowVector(neuronLayers.back()->size()));
-        deltas.push_back(new RowVector(neuronLayers.back()->size()));
+        cacheLayers.push_back(make_unique<RowVector>(neuronLayers.back()->size()));
+        deltas.push_back(make_unique<RowVector>(neuronLayers.back()->size()));
 
         // coeffRef gives the reference of value at that place /** Direct access to the underlying index vector */ -> this comes from eigen lib
         if (i != topology.size() - 1) {
@@ -29,13 +29,13 @@ NeuralNetwork::NeuralNetwork(const vector<uint>& topology, const RowVector& inpu
         // initialize weights matrix
         if (i > 0) {
             if (i != topology.size() - 1) {
-                weights.push_back(new Matrix(topology[i - 1] + 1, topology[i] + 1));
+                weights.push_back(make_unique<Matrix>(topology[i - 1] + 1, topology[i] + 1));
                 weights.back()->setRandom();
-                weights.back()->col(topology[i]).setZero(); // set all elements to zero in the last column of the weights matrix
-                weights.back()->coeffRef(topology[i - 1], topology[i]) = 1.0; // except for the last element -> this is due to the bias neuron
+                weights.back()->col(topology[i]).setZero();
+                weights.back()->coeffRef(topology[i - 1], topology[i]) = 1.0;
             }
             else {
-                weights.push_back(new Matrix(topology[i - 1] + 1, topology[i]));
+                weights.push_back(make_unique<Matrix>(topology[i - 1] + 1, topology[i]));
                 weights.back()->setRandom();
             }
         }
@@ -105,7 +105,7 @@ void NeuralNetwork::updateWeights(void)
 void NeuralNetwork::saveWeights(const string& filename)
 {
     ofstream file1(filename);
-    for (Matrix* p : weights) {
+    for (const auto& p : weights) {
         long int rows_of_given_matrix = p->rows();
         long int cols_of_given_matrix = p->cols();
         
@@ -132,7 +132,7 @@ int NeuralNetwork::loadWeights(const string& filename)
     long int cols_of_given_matrix = 0;
     long int rows_of_given_matrix = 0;
 
-    for (Matrix* p : weights) { // a check is missing here to check if the structure of the neural network is matching or not
+    for (const auto& p : weights) { // a check is missing here to check if the structure of the neural network is matching or not
         getline(file, line, '\n');
         cols_of_given_matrix = stoi(line);
         getline(file, line, '\n');
@@ -155,7 +155,7 @@ int NeuralNetwork::loadWeights(const string& filename)
 
 void NeuralNetwork::printWeights(void)
 {
-    for (Matrix* p : weights) {
+    for (const auto& p : weights) {
         cout << *p << endl;
     }
 }
@@ -196,26 +196,6 @@ NeuralNetwork::~NeuralNetwork(void)
 #ifdef DEBUG
     cout << "Destructor is called!" << endl;
 #endif
-
-    for (RowVector* p : neuronLayers) {
-        delete p;
-    }
-    neuronLayers.clear();
-
-    for (RowVector* p : cacheLayers) {
-        delete p;
-    }
-    cacheLayers.clear();
-
-    for (RowVector* p : deltas) {
-        delete p;
-    }
-    deltas.clear();
-
-    for (Matrix* p : weights) {
-        delete p;
-    }
-    weights.clear();
 }
 
 bool NeuralNetwork::float_cmp(const Scalar val_in1, const Scalar val_in2, const Scalar threshold_in)
