@@ -50,16 +50,16 @@ public:
     RowVector propagateForward(const RowVector& input);
 
     // save the weight matrices after training
-    void saveWeights(string filename);
+    void saveWeights(const string& filename);
 
     // load the weight matrices in order to skip training
-    int loadWeights(string filenameid);
+    int loadWeights(const string& filenameid);
 
     // as a debugging tool, print the weight matrices
     void printWeights(void);
 
     // function to train the neural network give an array of data points
-    vector<Scalar> train(vector<RowVector*> input_data, vector<RowVector*> output_data);
+    vector<Scalar> train(const vector<RowVector*>& input_data, const vector<RowVector*>& output_data);
 
     // destructor -> free neuronLayers, cacheLayers, weights, and deltas
     ~NeuralNetwork();

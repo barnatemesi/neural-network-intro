@@ -90,29 +90,19 @@ void NeuralNetwork::updateWeights(void)
 {
     // topology.size()-1 = weights.size()
     for (uint i=0; i<topology.size() - 1; ++i) {
-        // in this loop we are iterating over the different layers (from first hidden to output layer)
-        // if this layer is the output layer, there is no bias neuron there, number of neurons specified = number of cols
-        // if this layer is not the output layer, there is a bias neuron and number of neurons specified = number of cols -1
-        if (i != topology.size() - 2) {
-            for (uint c=0; c<weights[i]->cols() - 1; ++c) {
-                for (uint r=0; r<weights[i]->rows(); ++r) {
-                    weights[i]->coeffRef(r, c) += 
-                        learningRate * deltas[i + 1]->coeffRef(c) * activationFunctionDerivative(cacheLayers[i + 1]->coeffRef(c)) * neuronLayers[i]->coeffRef(r);
-                }
-            }
+        // compute element-wise: delta * activationFunctionDerivative(cache) for this layer
+        uint num_neurons = (i != topology.size() - 2) ? weights[i]->cols() - 1 : weights[i]->cols();
+        RowVector gradient(num_neurons);
+        for (uint c=0; c<num_neurons; ++c) {
+            gradient(c) = deltas[i + 1]->coeffRef(c) * activationFunctionDerivative(cacheLayers[i + 1]->coeffRef(c));
         }
-        else { // this is the output layer, no bias neuron
-            for (uint c=0; c<weights[i]->cols(); ++c) {
-                for (uint r=0; r<weights[i]->rows(); ++r) {
-                    weights[i]->coeffRef(r, c) += 
-                        learningRate * deltas[i + 1]->coeffRef(c) * activationFunctionDerivative(cacheLayers[i + 1]->coeffRef(c)) * neuronLayers[i]->coeffRef(r);
-                }
-            }
-        }
+        // outer product: each column of the weight update is neuronLayers[i]^T * gradient[c]
+        weights[i]->block(0, 0, weights[i]->rows(), num_neurons) +=
+            learningRate * (neuronLayers[i]->transpose() * gradient);
     }
 }
 
-void NeuralNetwork::saveWeights(string filename)
+void NeuralNetwork::saveWeights(const string& filename)
 {
     ofstream file1(filename);
     for (Matrix* p : weights) {
@@ -132,7 +122,7 @@ void NeuralNetwork::saveWeights(string filename)
     file1.close();
 }
 
-int NeuralNetwork::loadWeights(string filename)
+int NeuralNetwork::loadWeights(const string& filename)
 {
     ifstream file(filename);
     if (!file.is_open()) {
@@ -176,7 +166,7 @@ void NeuralNetwork::propagateBackward(RowVector& output)
     updateWeights();
 }
 
-vector<Scalar> NeuralNetwork::train(vector<RowVector*> input_data, vector<RowVector*> output_data)
+vector<Scalar> NeuralNetwork::train(const vector<RowVector*>& input_data, const vector<RowVector*>& output_data)
 {
     vector<Scalar> MS_error;
 

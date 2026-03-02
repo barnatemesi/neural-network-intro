@@ -14,7 +14,7 @@ using namespace std;
 void do_eigen_lib_test(void);
 int do_equation_based_training(void);
 int do_kf_based_training(void);
-int calculate_outs_based_on_nn(string weights_file_name, string inputs_csv, string output_csv);
+int calculate_outs_based_on_nn(const string& weights_file_name, const string& inputs_csv, const string& output_csv);
 
 #define TOPOLOGY_EQ             {2U, 3U, 1U}
 #define TOPOLOGY_KF             {3U, 4U, 1U}
@@ -183,8 +183,8 @@ int do_kf_based_training(void)
 {
     constexpr Scalar ms_error_threshold = 0.900F;
 
-    training_rate_inp = 0.005F;
-    length_of_training = 500;
+    const Scalar kf_training_rate = 0.005F;
+    const int kf_length_of_training = 500;
 
     vector<RowVector*> in_dat_kf;
     vector<RowVector*> out_dat_kf;
@@ -192,7 +192,7 @@ int do_kf_based_training(void)
     RowVector input_scaling_data(3);
     input_scaling_data << 1.0F/10.0F, 1.0F/1.0F, 1.0F/1.0F;
     
-    NeuralNetwork n_network_kf(TOPOLOGY_KF, input_scaling_data, training_rate_inp);
+    NeuralNetwork n_network_kf(TOPOLOGY_KF, input_scaling_data, kf_training_rate);
 
     // these inputs / outputs are very simple, the load just goes up to ~ 7Nm through a first-order filter
     // input is such as: omega_shaft, T_mot, T_user
@@ -212,7 +212,7 @@ int do_kf_based_training(void)
     
     n_network_kf.printWeights();
 
-    for (int i=0; i<length_of_training; ++i) {
+    for (int i=0; i<kf_length_of_training; ++i) {
         vector<Scalar> return_val = n_network_kf.train(in_dat_kf, out_dat_kf);
         // cout << "*********************" << endl;
         Scalar sum_of_MS_error = accumulate(return_val.begin(), return_val.end(), 0.0);
@@ -222,7 +222,7 @@ int do_kf_based_training(void)
             cout << "exited at idx: " << i << endl;
             break;
         }
-        if (i == (length_of_training - 1)) {
+        if (i == (kf_length_of_training - 1)) {
             cout << "no break / exit condition was triggered" << endl;
         }
     }
@@ -273,7 +273,7 @@ int do_kf_based_training(void)
     return 0;
 }
 
-int calculate_outs_based_on_nn(string weights_file_name, string inputs_csv, string output_csv)
+int calculate_outs_based_on_nn(const string& weights_file_name, const string& inputs_csv, const string& output_csv)
 {
     vector<RowVector*> in_data;
     // we make the simplification that the data is always scalar and of type float
