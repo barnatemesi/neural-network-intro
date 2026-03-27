@@ -26,8 +26,28 @@ Works pretty well with linear equations. Even when increasing the complexity of 
 - Figure out how to use neural networks as simple filters
 - Figure out how to use neural networks as simple controllers
 
+# Testing
+Unit tests use the [Catch2](https://github.com/catchorg/Catch2) framework and live in the `test/` directory.
+
+### Running tests
+```bash
+make test
+```
+This delegates to `test/Makefile`, which compiles and runs the test runner with the `--reporter compact` flag.
+
+### Test files
+| File | Covers |
+|------|--------|
+| `test_neural_network.cpp` | Eigen basics, `float_cmp`, NN construction, forward propagation, equation-based & KF-based training, save/load weights, activation functions |
+| `test_misc.cpp` | `genData`, `ReadCSV`, `WriteCSV`, `DeleteData` |
+
+### Notes
+- Tests are compiled with the **ReLU** activation function (`-DACTIVATION_FN_IS_RELU`) so that output values are not clamped during training.
+- Training tests retry up to a configurable number of attempts because convergence is non-deterministic.
+
 # Dependencies
  - Eigen library (5.0.0)
+ - [Catch2](https://github.com/catchorg/Catch2) (required for unit tests)
  - compiler of your choice: g++ (13.3.0) / clang (18.1.13 - works but not properly tested)
  - make (4.3)
 
