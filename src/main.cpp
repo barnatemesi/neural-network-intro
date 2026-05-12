@@ -1,9 +1,7 @@
 #include <iostream>
-#include <Eigen/Dense>
-#include <vector>
-#include <cstdlib>
 #include <numeric>
 #include <string>
+#include <vector>
 #include "main.h"
 #include "misc.h"
 #include "neural_network.h"
@@ -115,13 +113,7 @@ void do_eigen_lib_test(void)
 
     cout << "row_vector_test is: " << row_vector_test[0]->coeff(0) << endl;
 
-    // post-processing
-    delete row_vector_test.back();
-
-    cout << "***************" << endl;
-}
-
-int do_equation_based_training(void)
+int main()
 {
     vector<RowVector*> in_dat;
     vector<RowVector*> out_dat;
@@ -173,18 +165,7 @@ int do_equation_based_training(void)
 
         if (NeuralNetwork::float_cmp(run_out_data(0), expected_output, epsilon)) {
             break;
-        } else {
-            ++curr_num_of_tries;
         }
-    } // end of while loop
-
-    cout << "current number if tries: " << curr_num_of_tries << endl;
-
-    if (NeuralNetwork::float_cmp(run_out_data(0), expected_output, epsilon)) {
-        cout << "the test has passed!" << endl;
-    } else {
-        cout << "expected value is: " << expected_output << endl;
-        cout << "the test has failed!" << endl;
     }
 
     cout << "run_out_data: " << run_out_data(0) << endl;
@@ -320,10 +301,14 @@ int calculate_outs_based_on_nn(const string& weights_file_name, const string& in
         f_out_data.push_back(run_out_data.coeff(0));
     }
 
-    WriteCSV(output_csv, f_out_data);
+    // test with a sample input
+    RowVector sample(3);
+    sample << 0.0F, 100.0F, 24.0F;
+    RowVector result = nn.propagateForward(sample);
+    cout << "Output: " << result(0) << endl;
 
-    // post-processing
-    DeleteData(in_data);
+    DeleteData(inputs);
+    DeleteData(outputs);
 
     return 0;
 }

@@ -2,7 +2,6 @@ build/
 eigen/
 build_prod/
 build_dev/
-test*
 kf_*.csv
 outputs*.csv
 .vscode/

@@ -17,49 +17,51 @@ typedef Eigen::MatrixXf Matrix;
 typedef Eigen::RowVectorXf RowVector;
 typedef Eigen::VectorXf ColVector;
 
-typedef enum {
+typedef enum
+{
     MISMATCH_IN_SIZE = -1,
     NO_ERROR = 0,
 } Error_Codes_T;
 
-class NeuralNetwork {
-private:
+class NeuralNetwork
+{
+  private:
     // function for backward propagation of errors made by neurons
-    void propagateBackward(RowVector& output);
+    void propagateBackward(RowVector &output);
 
     // function to calculate errors made by neurons in each layer
-    void calcErrors(RowVector& output);
+    void calcErrors(RowVector &output);
 
     // function to update the weights of connections
     void updateWeights(void);
-    
+
     // storage objects for working of neural network
     vector<unique_ptr<RowVector>> neuronLayers; // stores the different layers of out network
     vector<unique_ptr<RowVector>> cacheLayers; // stores the unactivated (activation fn not yet applied) values of layers
     vector<unique_ptr<RowVector>> deltas; // stores the error contribution of each neurons
     vector<unique_ptr<Matrix>> weights; // the connection weights itself
     Scalar learningRate;
-    vector<uint> topology; // topology of the nn system
+    vector<uint> topology;  // topology of the nn system
     RowVector inputScaling; // pre-processing the inputs
-protected:
-public:
+  protected:
+  public:
     // constructor
-    NeuralNetwork(const vector<uint>& topology, const RowVector& inputScaling, Scalar learningRate = Scalar(0.005));
+    NeuralNetwork(const vector<uint> &topology, const RowVector &inputScaling, Scalar learningRate = Scalar(0.005));
 
     // function for forward propagation of data
-    RowVector propagateForward(const RowVector& input);
+    RowVector propagateForward(const RowVector &input);
 
     // save the weight matrices after training
-    void saveWeights(const string& filename);
+    void saveWeights(const string &filename);
 
     // load the weight matrices in order to skip training
-    int loadWeights(const string& filenameid);
+    int loadWeights(const string &filenameid);
 
     // as a debugging tool, print the weight matrices
     void printWeights(void);
 
     // function to train the neural network give an array of data points
-    vector<Scalar> train(const vector<RowVector*>& input_data, const vector<RowVector*>& output_data);
+    vector<Scalar> train(const vector<RowVector *> &input_data, const vector<RowVector *> &output_data);
 
     ~NeuralNetwork();
 

@@ -1,6 +1,6 @@
 #include "neural_network.h"
 
-NeuralNetwork::NeuralNetwork(const vector<uint>& topology, const RowVector& inputScaling, Scalar learningRate)
+NeuralNetwork::NeuralNetwork(const vector<uint> &topology, const RowVector &inputScaling, Scalar learningRate)
 {
 #ifdef DEBUG
     cout << "Constructor is called!" << endl;
@@ -8,7 +8,8 @@ NeuralNetwork::NeuralNetwork(const vector<uint>& topology, const RowVector& inpu
     this->topology = topology;
     this->inputScaling = inputScaling;
     this->learningRate = learningRate;
-    for (uint i=0; i<topology.size(); ++i) {
+    for (uint i = 0; i < topology.size(); ++i)
+    {
         // initialize neuron layers
         // we add an extra bias neuron to each layer (vector), except for the output one
         if (i == topology.size() - 1)
@@ -21,7 +22,8 @@ NeuralNetwork::NeuralNetwork(const vector<uint>& topology, const RowVector& inpu
         deltas.push_back(make_unique<RowVector>(neuronLayers.back()->size()));
 
         // coeffRef gives the reference of value at that place /** Direct access to the underlying index vector */ -> this comes from eigen lib
-        if (i != topology.size() - 1) {
+        if (i != topology.size() - 1)
+        {
             neuronLayers.back()->coeffRef(topology[i]) = 1.0;
             cacheLayers.back()->coeffRef(topology[i]) = 1.0;
         }
@@ -42,29 +44,32 @@ NeuralNetwork::NeuralNetwork(const vector<uint>& topology, const RowVector& inpu
     }
 }
 
-RowVector NeuralNetwork::propagateForward(const RowVector& input)
+RowVector NeuralNetwork::propagateForward(const RowVector &input)
 {
     // pre-process inputs
-    if (input.size() != inputScaling.size()) {
+    if (input.size() != inputScaling.size())
+    {
         cout << "unhandled error has been encountered due to size mismatch!" << endl;
-        RowVector zeroReturnVector(1); 
+        RowVector zeroReturnVector(1);
         zeroReturnVector << 0.0F;
 
         return zeroReturnVector;
     }
 
     RowVector scaled_input(input.size());
-    scaled_input = input.array() * inputScaling.array(); // Eigen allows assigning array expressions to matrix / vector variables
+    scaled_input =
+        input.array() * inputScaling.array(); // Eigen allows assigning array expressions to matrix / vector variables
 
     // set the input to input layer
     // block returns a part of the given vector or matrix
     // block takes 4 arguments : startRow, startCol, blockRows, blockCols
     neuronLayers.front()->block(0, 0, 1, neuronLayers.front()->size() - 1) = scaled_input;
 
-    // propagate the data forward and then 
+    // propagate the data forward and then
     // apply the activation function to your network
     // unaryExpr applies the given function to all elements of CURRENT_LAYER
-    for (uint i=1; i<topology.size(); ++i) {
+    for (uint i = 1; i < topology.size(); ++i)
+    {
         (*neuronLayers[i]) = (*neuronLayers[i - 1]) * (*weights[i - 1]);
         neuronLayers[i]->block(0, 0, 1, topology[i]) =
             neuronLayers[i]->block(0, 0, 1, topology[i]).unaryExpr(function(activationFunction));
@@ -73,7 +78,7 @@ RowVector NeuralNetwork::propagateForward(const RowVector& input)
     return *neuronLayers.back();
 }
 
-void NeuralNetwork::calcErrors(RowVector& output)
+void NeuralNetwork::calcErrors(RowVector &output)
 {
     // calculate the errors made by neurons of last layer
     (*deltas.back()) = output - (*neuronLayers.back());
@@ -81,7 +86,8 @@ void NeuralNetwork::calcErrors(RowVector& output)
     // error calculation of hidden layers is different
     // we will begin by the last hidden layer
     // and we will continue till the first hidden layer
-    for (uint i=topology.size() - 2; i>0; i--) {
+    for (uint i = topology.size() - 2; i > 0; i--)
+    {
         (*deltas[i]) = (*deltas[i + 1]) * (weights[i]->transpose());
     }
 }
@@ -89,11 +95,13 @@ void NeuralNetwork::calcErrors(RowVector& output)
 void NeuralNetwork::updateWeights(void)
 {
     // topology.size()-1 = weights.size()
-    for (uint i=0; i<topology.size() - 1; ++i) {
+    for (uint i = 0; i < topology.size() - 1; ++i)
+    {
         // compute element-wise: delta * activationFunctionDerivative(cache) for this layer
         uint num_neurons = (i != topology.size() - 2) ? weights[i]->cols() - 1 : weights[i]->cols();
         RowVector gradient(num_neurons);
-        for (uint c=0; c<num_neurons; ++c) {
+        for (uint c = 0; c < num_neurons; ++c)
+        {
             gradient(c) = deltas[i + 1]->coeffRef(c) * activationFunctionDerivative(cacheLayers[i + 1]->coeffRef(c));
         }
         // outer product: each column of the weight update is neuronLayers[i]^T * gradient[c]
@@ -102,18 +110,20 @@ void NeuralNetwork::updateWeights(void)
     }
 }
 
-void NeuralNetwork::saveWeights(const string& filename)
+void NeuralNetwork::saveWeights(const string &filename)
 {
     ofstream file1(filename);
     for (const auto& p : weights) {
         long int rows_of_given_matrix = p->rows();
         long int cols_of_given_matrix = p->cols();
-        
+
         file1 << cols_of_given_matrix << endl;
         file1 << rows_of_given_matrix << endl;
 
-        for (uint i=0; i<cols_of_given_matrix; ++i) {
-            for (uint j=0; j<rows_of_given_matrix; ++j) {
+        for (uint i = 0; i < cols_of_given_matrix; ++i)
+        {
+            for (uint j = 0; j < rows_of_given_matrix; ++j)
+            {
                 file1 << p->coeff(j, i) << endl;
             }
         }
@@ -122,10 +132,11 @@ void NeuralNetwork::saveWeights(const string& filename)
     file1.close();
 }
 
-int NeuralNetwork::loadWeights(const string& filename)
+int NeuralNetwork::loadWeights(const string &filename)
 {
     ifstream file(filename);
-    if (!file.is_open()) {
+    if (!file.is_open())
+    {
         return MISMATCH_IN_SIZE;
     }
     string line;
@@ -138,12 +149,15 @@ int NeuralNetwork::loadWeights(const string& filename)
         getline(file, line, '\n');
         rows_of_given_matrix = stoi(line);
 
-        if ((cols_of_given_matrix != p->cols()) || (rows_of_given_matrix != p->rows())) {
+        if ((cols_of_given_matrix != p->cols()) || (rows_of_given_matrix != p->rows()))
+        {
             return -1; // return -1 error code indicating mismatch in matrix sizes
         }
 
-        for (uint i=0; i<cols_of_given_matrix; ++i) {
-            for (uint j=0; j<rows_of_given_matrix; ++j) {
+        for (uint i = 0; i < cols_of_given_matrix; ++i)
+        {
+            for (uint j = 0; j < rows_of_given_matrix; ++j)
+            {
                 getline(file, line, '\n');
                 p->coeffRef(j, i) = stof(line);
             }
@@ -160,17 +174,18 @@ void NeuralNetwork::printWeights(void)
     }
 }
 
-void NeuralNetwork::propagateBackward(RowVector& output)
+void NeuralNetwork::propagateBackward(RowVector &output)
 {
     calcErrors(output);
     updateWeights();
 }
 
-vector<Scalar> NeuralNetwork::train(const vector<RowVector*>& input_data, const vector<RowVector*>& output_data)
+vector<Scalar> NeuralNetwork::train(const vector<RowVector *> &input_data, const vector<RowVector *> &output_data)
 {
     vector<Scalar> MS_error;
 
-    for (uint i=0; i<input_data.size(); ++i) {
+    for (uint i = 0; i < input_data.size(); ++i)
+    {
 #ifdef DEBUG_TRAIN
         cout << "Input to neural network is : " << *input_data[i] << endl;
 #endif
@@ -228,17 +243,23 @@ Scalar NeuralNetwork::activationFunctionDerivative(Scalar x)
 #ifdef ACTIVATION_FN_IS_RELU
 Scalar NeuralNetwork::activationFunction(Scalar x)
 {
-    if (x < 0.0F) {
+    if (x < 0.0F)
+    {
         return 0.0F;
-    } else {
+    }
+    else
+    {
         return x;
     }
 }
 Scalar NeuralNetwork::activationFunctionDerivative(Scalar x)
 {
-    if (x < 0.0F) {
+    if (x < 0.0F)
+    {
         return 0.0F;
-    } else {
+    }
+    else
+    {
         return 1.0F;
     }
 }
