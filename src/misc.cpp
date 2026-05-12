@@ -1,7 +1,7 @@
 #include "misc.h"
 #include <random>
 
-int ReadCSV(const string &filename, vector<RowVector *> &data)
+int ReadCSV(const string &filename, TrainingData &data)
 {
     data.clear();
     ifstream file(filename);
@@ -21,7 +21,7 @@ int ReadCSV(const string &filename, vector<RowVector *> &data)
     }
 
     uint cols = parsed_vec.size();
-    data.push_back(new RowVector(cols));
+    data.push_back(make_unique<RowVector>(cols));
 
     for (uint i = 0; i < cols; i++)
     {
@@ -34,7 +34,7 @@ int ReadCSV(const string &filename, vector<RowVector *> &data)
         while (getline(file, line, '\n'))
         {
             stringstream ss(line);
-            data.push_back(new RowVector(1, cols));
+            data.push_back(make_unique<RowVector>(1, cols));
             uint i = 0;
             while (getline(ss, word, ','))
             {
@@ -45,15 +45,6 @@ int ReadCSV(const string &filename, vector<RowVector *> &data)
     }
 
     return 0;
-}
-
-void DeleteData(vector<RowVector *> &data)
-{
-    for (RowVector *p : data)
-    {
-        delete p;
-    }
-    data.clear();
 }
 
 void genData(const string &filename)

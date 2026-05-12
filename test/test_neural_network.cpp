@@ -29,13 +29,11 @@ TEST_CASE("Eigen matrix basic operations", "[eigen]")
 
 TEST_CASE("Eigen RowVector allocation and access", "[eigen]")
 {
-    vector<RowVector *> row_vector_test;
-    row_vector_test.push_back(new RowVector(1));
+    TrainingData row_vector_test;
+    row_vector_test.push_back(make_unique<RowVector>(1));
     row_vector_test[0]->coeffRef(0) = 5.0F;
 
     REQUIRE(row_vector_test[0]->coeff(0) == 5.0F);
-
-    delete row_vector_test.back();
 }
 
 // ===== float_cmp =====
@@ -103,8 +101,8 @@ TEST_CASE("propagateForward handles input size mismatch", "[neural_network]")
 
 TEST_CASE("Equation-based training converges within allowed tries", "[training]")
 {
-    vector<RowVector *> in_dat;
-    vector<RowVector *> out_dat;
+    TrainingData in_dat;
+    TrainingData out_dat;
 
     genData("test");
     int ret = ReadCSV("test-in", in_dat);
@@ -147,9 +145,6 @@ TEST_CASE("Equation-based training converges within allowed tries", "[training]"
 
     REQUIRE(passed);
 
-    DeleteData(in_dat);
-    DeleteData(out_dat);
-
     // cleanup generated files
     remove("test-in");
     remove("test-out");
@@ -164,8 +159,8 @@ TEST_CASE("KF-based training reduces MSE below threshold", "[training]")
     constexpr int kf_length_of_training = 2000;
     constexpr uint max_num_of_tries = 10U;
 
-    vector<RowVector *> in_dat_kf;
-    vector<RowVector *> out_dat_kf;
+    TrainingData in_dat_kf;
+    TrainingData out_dat_kf;
 
     int ret = ReadCSV("data/SIM_KF_validation_inputs.csv", in_dat_kf);
     REQUIRE(ret == 0);
@@ -196,9 +191,6 @@ TEST_CASE("KF-based training reduces MSE below threshold", "[training]")
     }
 
     REQUIRE(exited_early);
-
-    DeleteData(in_dat_kf);
-    DeleteData(out_dat_kf);
 }
 
 TEST_CASE("KF-based NN produces correct output after training", "[training]")
@@ -210,8 +202,8 @@ TEST_CASE("KF-based NN produces correct output after training", "[training]")
     // Use inputs within the training data distribution (T_mot~3-5, T_user~0-7)
     constexpr Scalar epsilon = 1.5F;
 
-    vector<RowVector *> in_dat_kf;
-    vector<RowVector *> out_dat_kf;
+    TrainingData in_dat_kf;
+    TrainingData out_dat_kf;
 
     int ret = ReadCSV("data/SIM_KF_validation_inputs.csv", in_dat_kf);
     REQUIRE(ret == 0);
@@ -249,9 +241,6 @@ TEST_CASE("KF-based NN produces correct output after training", "[training]")
     }
 
     REQUIRE(passed);
-
-    DeleteData(in_dat_kf);
-    DeleteData(out_dat_kf);
 }
 
 // ===== Save / Load Weights =====

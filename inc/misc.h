@@ -7,8 +7,7 @@
 #include "neural_network.h"
 
 // User function declaration
-int ReadCSV(const string &filename, vector<RowVector *> &data);
-void DeleteData(vector<RowVector *> &data);
+int ReadCSV(const string &filename, TrainingData &data);
 void WriteCSV(const string &filename, const vector<Scalar> &data);
 void genData(const string &filename);
 

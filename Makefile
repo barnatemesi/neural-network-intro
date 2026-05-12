@@ -61,6 +61,7 @@ src/misc.cpp \
 INC_DIRS = \
 -Iinc \
 -I/usr/local/eigen \
+-Ieigen \
 
 SYMBOLS =
 

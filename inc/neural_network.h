@@ -17,6 +17,8 @@ typedef Eigen::MatrixXf Matrix;
 typedef Eigen::RowVectorXf RowVector;
 typedef Eigen::VectorXf ColVector;
 
+using TrainingData = std::vector<std::unique_ptr<RowVector>>;
+
 typedef enum
 {
     MISMATCH_IN_SIZE = -1,
@@ -61,7 +63,7 @@ class NeuralNetwork
     void printWeights(void);
 
     // function to train the neural network give an array of data points
-    vector<Scalar> train(const vector<RowVector *> &input_data, const vector<RowVector *> &output_data);
+    vector<Scalar> train(const TrainingData &input_data, const TrainingData &output_data);
 
     ~NeuralNetwork();
 

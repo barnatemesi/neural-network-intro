@@ -106,17 +106,18 @@ void do_eigen_lib_test(void)
     m(1, 1) = m(1, 0) + m(0, 1);
     cout << m << endl;
 
-    vector<RowVector*> row_vector_test;
-    row_vector_test.push_back(new RowVector(1));
+    TrainingData row_vector_test;
+    row_vector_test.push_back(make_unique<RowVector>(1));
 
     row_vector_test[0]->coeffRef(0) = 5.0F;
 
     cout << "row_vector_test is: " << row_vector_test[0]->coeff(0) << endl;
+}
 
-int main()
+int do_equation_based_training(void)
 {
-    vector<RowVector*> in_dat;
-    vector<RowVector*> out_dat;
+    TrainingData in_dat;
+    TrainingData out_dat;
 
     genData("test");
     int ret = ReadCSV("test-in", in_dat);
@@ -170,10 +171,6 @@ int main()
 
     cout << "run_out_data: " << run_out_data(0) << endl;
 
-    // post-processing
-    DeleteData(in_dat);
-    DeleteData(out_dat);
-
     cout << "******************************" << endl;
 
     return 0;
@@ -186,8 +183,8 @@ int do_kf_based_training(void)
     const Scalar kf_training_rate = 0.005F;
     const int kf_length_of_training = 500;
 
-    vector<RowVector*> in_dat_kf;
-    vector<RowVector*> out_dat_kf;
+    TrainingData in_dat_kf;
+    TrainingData out_dat_kf;
     RowVector input_scaling_data = parseScalingVector(input_scaling_vector, 3);
     
     NeuralNetwork n_network_kf(TOPOLOGY_KF, input_scaling_data, kf_training_rate);
@@ -235,8 +232,6 @@ int do_kf_based_training(void)
     ret = n_network_kf.loadWeights(kf_weights_file_name);
     if (ret == MISMATCH_IN_SIZE) {
         cout << "Could not load weights! Please check the NN system initialization!" << endl;
-        DeleteData(in_dat_kf);
-        DeleteData(out_dat_kf);
         return -1;
     }
 
@@ -262,10 +257,6 @@ int do_kf_based_training(void)
 
     cout << "run_out_data: " << run_out_data(0) << endl;
 
-    // post-processing
-    DeleteData(in_dat_kf);
-    DeleteData(out_dat_kf);
-
     cout << "******************************" << endl;
 
     return 0;
@@ -273,10 +264,9 @@ int do_kf_based_training(void)
 
 int calculate_outs_based_on_nn(const string& weights_file_name, const string& inputs_csv, const string& output_csv)
 {
-    vector<RowVector*> in_data;
+    TrainingData in_data;
     // we make the simplification that the data is always scalar and of type float
     vector<Scalar> f_out_data;
-    // vector<RowVector*> out_data;
     RowVector run_out_data;
     RowVector input_scaling_data = parseScalingVector(input_scaling_vector, 3);
     NeuralNetwork n_network(TOPOLOGY_KF, input_scaling_data, training_rate_inp);
@@ -304,11 +294,8 @@ int calculate_outs_based_on_nn(const string& weights_file_name, const string& in
     // test with a sample input
     RowVector sample(3);
     sample << 0.0F, 100.0F, 24.0F;
-    RowVector result = nn.propagateForward(sample);
+    RowVector result = n_network.propagateForward(sample);
     cout << "Output: " << result(0) << endl;
-
-    DeleteData(inputs);
-    DeleteData(outputs);
 
     return 0;
 }

@@ -8,3 +8,4 @@ outputs*.csv
 *.ods
 kf-data/SIM_KF_validation.csv
 *_copy*
+CLAUDE.md

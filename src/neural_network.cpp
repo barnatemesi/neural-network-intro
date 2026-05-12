@@ -180,7 +180,7 @@ void NeuralNetwork::propagateBackward(RowVector &output)
     updateWeights();
 }
 
-vector<Scalar> NeuralNetwork::train(const vector<RowVector *> &input_data, const vector<RowVector *> &output_data)
+vector<Scalar> NeuralNetwork::train(const TrainingData &input_data, const TrainingData &output_data)
 {
     vector<Scalar> MS_error;
 

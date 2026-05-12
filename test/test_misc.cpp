@@ -40,7 +40,7 @@ TEST_CASE("genData creates input and output files", "[misc]")
 
 TEST_CASE("ReadCSV returns error for non-existent file", "[misc]")
 {
-    vector<RowVector *> data;
+    TrainingData data;
     int ret = ReadCSV("nonexistent_file.csv", data);
     REQUIRE(ret == -1);
     REQUIRE(data.empty());
@@ -57,7 +57,7 @@ TEST_CASE("ReadCSV reads CSV data correctly", "[misc]")
         f.close();
     }
 
-    vector<RowVector *> data;
+    TrainingData data;
     int ret = ReadCSV("test_read.csv", data);
     REQUIRE(ret == 0);
     REQUIRE(data.size() == 3);
@@ -70,19 +70,16 @@ TEST_CASE("ReadCSV reads CSV data correctly", "[misc]")
     REQUIRE(data[1]->coeff(0) == 4.0F);
     REQUIRE(data[2]->coeff(2) == 9.0F);
 
-    DeleteData(data);
     remove("test_read.csv");
 }
 
 TEST_CASE("ReadCSV reads KF validation data", "[misc]")
 {
-    vector<RowVector *> data;
+    TrainingData data;
     int ret = ReadCSV("data/SIM_KF_validation_inputs.csv", data);
     REQUIRE(ret == 0);
     REQUIRE(data.size() > 0);
     REQUIRE(data[0]->size() == 3);
-
-    DeleteData(data);
 }
 
 // ===== WriteCSV =====
@@ -112,17 +109,4 @@ TEST_CASE("WriteCSV writes data and can be read back", "[misc]")
     REQUIRE(read_back[2] == 3.5F);
 
     remove("test_write.csv");
-}
-
-// ===== DeleteData =====
-
-TEST_CASE("DeleteData clears vector and frees memory", "[misc]")
-{
-    vector<RowVector *> data;
-    data.push_back(new RowVector(3));
-    data.push_back(new RowVector(3));
-    REQUIRE(data.size() == 2);
-
-    DeleteData(data);
-    REQUIRE(data.empty());
 }
