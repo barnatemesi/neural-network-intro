@@ -36,7 +36,7 @@ else
 	CXX_COMPILER=clang++
 endif
 ifeq ($(shell uname -s), Darwin) # this is macOS
-CXX_COMPILER=clang++
+CXX_COMPILER=clang++ # g++-13
 endif
 
 # C defines
@@ -49,7 +49,6 @@ CXXFLAGS=-Wall
 CXXFLAGS+=-Wextra
 CXXFLAGS+=-std=c++17
 CXXFLAGS+=-Og
-CXXFLAGS+=-Wno-maybe-uninitialized
 
 TARGET_BASE1=program
 TARGET1 = $(TARGET_BASE1)$(TARGET_EXTENSION)
@@ -61,7 +60,7 @@ src/misc.cpp \
 
 INC_DIRS = \
 -Iinc \
--Ieigen \
+-I/usr/local/eigen \
 
 SYMBOLS =
 
