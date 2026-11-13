@@ -18,6 +18,7 @@ int calculate_outs_based_on_nn(const string& weights_file_name, const string& in
 
 #define TOPOLOGY_EQ             {2U, 3U, 1U}
 #define TOPOLOGY_KF             {3U, 4U, 1U}
+#define KF_MAX_VALIDATION_RMSE  (0.05F) // [Nm], the load torque of the validation data spans ~3.8 .. 6.7 Nm
 
 int length_of_training = 10;
 Scalar training_rate_inp = 0.005F;
@@ -81,12 +82,14 @@ int main(int argc, char *argv[])
     do_eigen_lib_test();
 #endif
 
+    int result = 0;
+
 #ifdef BASED_EQUATION
-    do_equation_based_training();
+    result |= do_equation_based_training();
 #endif
 
 #ifdef BASED_KF
-    do_kf_based_training();
+    result |= do_kf_based_training();
 #endif
 
 #ifdef USE_NN
@@ -95,7 +98,7 @@ int main(int argc, char *argv[])
 
     cout << "end of program ***********" << endl;
 
-    return 0;
+    return (result == 0) ? 0 : 1;
 }
 
 void do_eigen_lib_test(void)
@@ -140,19 +143,23 @@ int do_equation_based_training(void)
 
     constexpr uint max_num_of_tries = 5U;
     uint curr_num_of_tries = 0U;
-    constexpr Scalar test_val_x = 2.0F;
-    constexpr Scalar test_val_y = 3.0F;
+    // the test point must lie inside the training range (genData draws x, y from [0, 1]),
+    // a neural network does not extrapolate
+    constexpr Scalar test_val_x = 0.2F;
+    constexpr Scalar test_val_y = 0.3F;
     constexpr Scalar expected_output = 2 * test_val_x + 10.0 + test_val_y; // 2 * x + 10 + y
     constexpr Scalar epsilon = 0.5F;
     RowVector run_in_data(2);
     run_in_data << test_val_x, test_val_y;
-    RowVector run_out_data;
-    run_out_data << 0.0F;
+    RowVector run_out_data = RowVector::Zero(1);
     Scalar sum_of_MS_error = 0.0F;
 
     while (curr_num_of_tries < max_num_of_tries) {
         RowVector input_scaling_data = parseScalingVector(input_scaling_vector, 2);
         NeuralNetwork n_network(TOPOLOGY_EQ, input_scaling_data, training_rate_inp);
+        if (input_scaling_vector.empty()) {
+            n_network.fitInputNormalization(in_dat);
+        }
 
         n_network.printWeights();
 
@@ -180,7 +187,8 @@ int do_equation_based_training(void)
 
     cout << "current number if tries: " << curr_num_of_tries << endl;
 
-    if (NeuralNetwork::float_cmp(run_out_data(0), expected_output, epsilon)) {
+    const bool passed = NeuralNetwork::float_cmp(run_out_data(0), expected_output, epsilon);
+    if (passed) {
         cout << "the test has passed!" << endl;
     } else {
         cout << "expected value is: " << expected_output << endl;
@@ -195,7 +203,7 @@ int do_equation_based_training(void)
 
     cout << "******************************" << endl;
 
-    return 0;
+    return passed ? 0 : -1;
 }
 
 int do_kf_based_training(void)
@@ -227,10 +235,20 @@ int do_kf_based_training(void)
         return -1;
     }
     
+    // the first part trains the network, the rest validates it on samples it has never seen
+    constexpr Scalar training_share = 0.8F;
+    const size_t n_train = size_t(training_share * Scalar(in_dat_kf.size()));
+    const vector<RowVector*> in_train(in_dat_kf.begin(), in_dat_kf.begin() + n_train);
+    const vector<RowVector*> out_train(out_dat_kf.begin(), out_dat_kf.begin() + n_train);
+
+    if (input_scaling_vector.empty()) {
+        n_network_kf.fitInputNormalization(in_train);
+    }
+
     n_network_kf.printWeights();
 
     for (int i=0; i<kf_length_of_training; ++i) {
-        vector<Scalar> return_val = n_network_kf.train(in_dat_kf, out_dat_kf);
+        vector<Scalar> return_val = n_network_kf.train(in_train, out_train);
         // cout << "*********************" << endl;
         Scalar sum_of_MS_error = accumulate(return_val.begin(), return_val.end(), 0.0);
         // cout << "sum of all MS error: " << sum_of_MS_error << endl;
@@ -260,26 +278,32 @@ int do_kf_based_training(void)
     }
 
     cout << "******************************" << endl;
-    cout << "test with random sample ******" << endl;
+    cout << "test with the validation samples ******" << endl;
 
-    constexpr Scalar epsilon = 0.99F;
-    RowVector run_in_data(3);
-    run_in_data << 0.0F, 100.0F, 24.0F;
+    // the network is used with the loaded weights and pre-processing from here on
+    constexpr Scalar max_validation_rmse = KF_MAX_VALIDATION_RMSE;
+    Scalar sum_sq_error = 0.0F;
+    for (size_t i=n_train; i<in_dat_kf.size(); ++i) {
+        const RowVector run_out_data = n_network_kf.propagateForward(*in_dat_kf[i]);
+        const Scalar err = run_out_data(0) - out_dat_kf[i]->coeff(0);
+        sum_sq_error += err * err;
+    }
+    const size_t n_validation = in_dat_kf.size() - n_train;
+    const Scalar validation_rmse = sqrt(sum_sq_error / Scalar(n_validation));
+    cout << "validation samples: " << n_validation << ", rmse: " << validation_rmse << endl;
 
-    Scalar kf_sim_expected_val = run_in_data(1) + run_in_data(2);
-    RowVector run_out_data;
+    const RowVector run_out_data = n_network_kf.propagateForward(*in_dat_kf.back());
+    cout << "last sample, expected: " << out_dat_kf.back()->coeff(0) << ", run_out_data: " << run_out_data(0) << endl;
 
-    run_out_data = n_network_kf.propagateForward(run_in_data);
-
-    if (NeuralNetwork::float_cmp(run_out_data(0), kf_sim_expected_val, epsilon)) {
+    if (validation_rmse < max_validation_rmse) {
         cout << "the test has passed!" << endl;
     } else {
-        cout << "expected value is: " << kf_sim_expected_val << endl;
+        cout << "allowed rmse is: " << max_validation_rmse << endl;
         cout << "the test has failed!" << endl;
+        DeleteData(in_dat_kf);
+        DeleteData(out_dat_kf);
         return -1;
     }
-
-    cout << "run_out_data: " << run_out_data(0) << endl;
 
     // post-processing
     DeleteData(in_dat_kf);

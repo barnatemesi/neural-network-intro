@@ -32,6 +32,9 @@ private:
 
     // function to update the weights of connections
     void updateWeights(void);
+
+    // activation function derivative of the given layer, the output layer is linear (derivative 1)
+    Scalar layerActivationDerivative(uint layer, Scalar x) const;
     
     // storage objects for working of neural network
     vector<unique_ptr<RowVector>> neuronLayers; // stores the different layers of out network
@@ -40,7 +43,8 @@ private:
     vector<unique_ptr<Matrix>> weights; // the connection weights itself
     Scalar learningRate;
     vector<uint> topology; // topology of the nn system
-    RowVector inputScaling; // pre-processing the inputs
+    RowVector inputScaling; // pre-processing the inputs: (input - inputOffset) * inputScaling
+    RowVector inputOffset;
 protected:
 public:
     // constructor
@@ -48,6 +52,9 @@ public:
 
     // function for forward propagation of data
     RowVector propagateForward(const RowVector& input);
+
+    // fit the input pre-processing to the training data: inputOffset = mean, inputScaling = 1 / standard deviation
+    void fitInputNormalization(const vector<RowVector*>& input_data);
 
     // save the weight matrices after training
     void saveWeights(const string& filename);
