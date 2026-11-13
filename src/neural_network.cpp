@@ -64,10 +64,13 @@ RowVector NeuralNetwork::propagateForward(const RowVector& input)
     // propagate the data forward and then 
     // apply the activation function to your network
     // unaryExpr applies the given function to all elements of CURRENT_LAYER
+    // the unactivated values are kept in cacheLayers, backpropagation needs the activation
+    // function derivative at exactly these values
     for (uint i=1; i<topology.size(); ++i) {
-        (*neuronLayers[i]) = (*neuronLayers[i - 1]) * (*weights[i - 1]);
+        (*cacheLayers[i]) = (*neuronLayers[i - 1]) * (*weights[i - 1]);
+        (*neuronLayers[i]) = (*cacheLayers[i]);
         neuronLayers[i]->block(0, 0, 1, topology[i]) =
-            neuronLayers[i]->block(0, 0, 1, topology[i]).unaryExpr(function(activationFunction));
+            cacheLayers[i]->block(0, 0, 1, topology[i]).unaryExpr(function(activationFunction));
     }
 
     return *neuronLayers.back();
@@ -81,8 +84,14 @@ void NeuralNetwork::calcErrors(RowVector& output)
     // error calculation of hidden layers is different
     // we will begin by the last hidden layer
     // and we will continue till the first hidden layer
+    // chain rule: the error of the next layer passes through its activation function derivative
+    // before it is distributed back over the weights (the bias neuron of the next layer has no
+    // incoming error, so only its first topology[i + 1] neurons are used)
     for (uint i=topology.size() - 2; i>0; i--) {
-        (*deltas[i]) = (*deltas[i + 1]) * (weights[i]->transpose());
+        const uint num_next = topology[i + 1];
+        RowVector gradient = deltas[i + 1]->head(num_next).cwiseProduct(
+            cacheLayers[i + 1]->head(num_next).unaryExpr(function(activationFunctionDerivative)));
+        (*deltas[i]) = gradient * (weights[i]->leftCols(num_next).transpose());
     }
 }
 
