@@ -17,18 +17,22 @@ typedef Eigen::MatrixXf Matrix;
 typedef Eigen::RowVectorXf RowVector;
 typedef Eigen::VectorXf ColVector;
 
-typedef enum {
+using TrainingData = std::vector<std::unique_ptr<RowVector>>;
+
+typedef enum
+{
     MISMATCH_IN_SIZE = -1,
     NO_ERROR = 0,
 } Error_Codes_T;
 
-class NeuralNetwork {
-private:
+class NeuralNetwork
+{
+  private:
     // function for backward propagation of errors made by neurons
-    void propagateBackward(RowVector& output);
+    void propagateBackward(RowVector &output);
 
     // function to calculate errors made by neurons in each layer
-    void calcErrors(RowVector& output);
+    void calcErrors(RowVector &output);
 
     // function to update the weights of connections
     void updateWeights(void);
@@ -48,25 +52,25 @@ private:
 protected:
 public:
     // constructor
-    NeuralNetwork(const vector<uint>& topology, const RowVector& inputScaling, Scalar learningRate = Scalar(0.005));
+    NeuralNetwork(const vector<uint> &topology, const RowVector &inputScaling, Scalar learningRate = Scalar(0.005));
 
     // function for forward propagation of data
-    RowVector propagateForward(const RowVector& input);
+    RowVector propagateForward(const RowVector &input);
 
     // fit the input pre-processing to the training data: inputOffset = mean, inputScaling = 1 / standard deviation
     void fitInputNormalization(const vector<RowVector*>& input_data);
 
     // save the weight matrices after training
-    void saveWeights(const string& filename);
+    void saveWeights(const string &filename);
 
     // load the weight matrices in order to skip training
-    int loadWeights(const string& filenameid);
+    int loadWeights(const string &filenameid);
 
     // as a debugging tool, print the weight matrices
     void printWeights(void);
 
     // function to train the neural network give an array of data points
-    vector<Scalar> train(const vector<RowVector*>& input_data, const vector<RowVector*>& output_data);
+    vector<Scalar> train(const TrainingData &input_data, const TrainingData &output_data);
 
     ~NeuralNetwork();
 

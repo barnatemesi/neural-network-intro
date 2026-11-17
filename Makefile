@@ -36,22 +36,21 @@ else
 	CXX_COMPILER=clang++
 endif
 ifeq ($(shell uname -s), Darwin) # this is macOS
-CXX_COMPILER=clang++
+CXX_COMPILER=clang++ # g++-13
 endif
 
 # C defines
 CXX_DEFS=-DDEBUG
-CXX_DEFS+=-DBASED_KF # BASED_EQUATION BASED_KF USE_NN
 CXX_DEFS+=-DACTIVATION_FN_IS_TANH # ACTIVATION_FN_IS_SIGMOID ACTIVATION_FN_IS_TANH ACTIVATION_FN_IS_RELU
+
+# Test defines moved to test/Makefile
 
 CXXFLAGS=-Wall
 CXXFLAGS+=-Wextra
 CXXFLAGS+=-std=c++17
 CXXFLAGS+=-Og
-CXXFLAGS+=-Wno-maybe-uninitialized
 
 TARGET_BASE1=program
-
 TARGET1 = $(TARGET_BASE1)$(TARGET_EXTENSION)
 
 CXX_TEST_SOURCES = \
@@ -61,6 +60,7 @@ src/misc.cpp \
 
 INC_DIRS = \
 -Iinc \
+-I/usr/local/eigen \
 -Ieigen \
 
 SYMBOLS =
@@ -68,6 +68,7 @@ SYMBOLS =
 help:
 	@echo "Usage:" \
     "  make all   # build $(TARGET)" \
+    "  make test  # build and run unit tests" \
     "  make clean # remove objects and binary" \
 
 all: clean default
@@ -77,8 +78,15 @@ default:
 	$(MKDIR) $(TARGET_DIR)
 	$(CXX_COMPILER) $(CXX_DEFS) $(CXXFLAGS) $(INC_DIRS) $(SYMBOLS) $(CXX_TEST_SOURCES) -o $(TARGET_DIR)/$(TARGET1)
 
+# build and run unit tests (delegated to test/Makefile)
+test:
+	$(MAKE) -C test test
+
 clean:
 	$(CLEANUP) $(TARGET_DIR)/$(TARGET1)
+	$(MAKE) -C test clean
+
+.PHONY: all default test clean ci help
 
 ci: CFLAGS += -Werror
 ci: default
