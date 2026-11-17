@@ -126,14 +126,14 @@ Scalar NeuralNetwork::layerActivationDerivative(uint layer, Scalar x) const
     return (layer == topology.size() - 1) ? Scalar(1.0) : activationFunctionDerivative(x);
 }
 
-void NeuralNetwork::fitInputNormalization(const vector<RowVector*>& input_data)
+void NeuralNetwork::fitInputNormalization(const TrainingData& input_data)
 {
     if (input_data.empty()) {
         return;
     }
     RowVector sum = RowVector::Zero(inputScaling.size());
     RowVector sum_sq = RowVector::Zero(inputScaling.size());
-    for (const RowVector* p : input_data) {
+    for (const auto& p : input_data) {
         sum += *p;
         sum_sq += p->cwiseProduct(*p);
     }

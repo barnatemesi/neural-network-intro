@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iterator>
 #include <numeric>
 #include <string>
 #include <vector>
@@ -225,8 +226,12 @@ int do_kf_based_training(void)
     // the first part trains the network, the rest validates it on samples it has never seen
     constexpr Scalar training_share = 0.8F;
     const size_t n_train = size_t(training_share * Scalar(in_dat_kf.size()));
-    const vector<RowVector*> in_train(in_dat_kf.begin(), in_dat_kf.begin() + n_train);
-    const vector<RowVector*> out_train(out_dat_kf.begin(), out_dat_kf.begin() + n_train);
+    TrainingData in_validation(make_move_iterator(in_dat_kf.begin() + n_train), make_move_iterator(in_dat_kf.end()));
+    TrainingData out_validation(make_move_iterator(out_dat_kf.begin() + n_train), make_move_iterator(out_dat_kf.end()));
+    in_dat_kf.resize(n_train);
+    out_dat_kf.resize(n_train);
+    const TrainingData& in_train = in_dat_kf;
+    const TrainingData& out_train = out_dat_kf;
 
     if (input_scaling_vector.empty()) {
         n_network_kf.fitInputNormalization(in_train);
@@ -268,31 +273,25 @@ int do_kf_based_training(void)
     // the network is used with the loaded weights and pre-processing from here on
     constexpr Scalar max_validation_rmse = KF_MAX_VALIDATION_RMSE;
     Scalar sum_sq_error = 0.0F;
-    for (size_t i=n_train; i<in_dat_kf.size(); ++i) {
-        const RowVector run_out_data = n_network_kf.propagateForward(*in_dat_kf[i]);
-        const Scalar err = run_out_data(0) - out_dat_kf[i]->coeff(0);
+    for (size_t i=0; i<in_validation.size(); ++i) {
+        const RowVector run_out_data = n_network_kf.propagateForward(*in_validation[i]);
+        const Scalar err = run_out_data(0) - out_validation[i]->coeff(0);
         sum_sq_error += err * err;
     }
-    const size_t n_validation = in_dat_kf.size() - n_train;
+    const size_t n_validation = in_validation.size();
     const Scalar validation_rmse = sqrt(sum_sq_error / Scalar(n_validation));
     cout << "validation samples: " << n_validation << ", rmse: " << validation_rmse << endl;
 
-    const RowVector run_out_data = n_network_kf.propagateForward(*in_dat_kf.back());
-    cout << "last sample, expected: " << out_dat_kf.back()->coeff(0) << ", run_out_data: " << run_out_data(0) << endl;
+    const RowVector run_out_data = n_network_kf.propagateForward(*in_validation.back());
+    cout << "last sample, expected: " << out_validation.back()->coeff(0) << ", run_out_data: " << run_out_data(0) << endl;
 
     if (validation_rmse < max_validation_rmse) {
         cout << "the test has passed!" << endl;
     } else {
         cout << "allowed rmse is: " << max_validation_rmse << endl;
         cout << "the test has failed!" << endl;
-        DeleteData(in_dat_kf);
-        DeleteData(out_dat_kf);
         return -1;
     }
-
-    // post-processing
-    DeleteData(in_dat_kf);
-    DeleteData(out_dat_kf);
 
     cout << "******************************" << endl;
 

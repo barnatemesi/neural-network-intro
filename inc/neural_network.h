@@ -58,7 +58,7 @@ public:
     RowVector propagateForward(const RowVector &input);
 
     // fit the input pre-processing to the training data: inputOffset = mean, inputScaling = 1 / standard deviation
-    void fitInputNormalization(const vector<RowVector*>& input_data);
+    void fitInputNormalization(const TrainingData& input_data);
 
     // save the weight matrices after training
     void saveWeights(const string &filename);
