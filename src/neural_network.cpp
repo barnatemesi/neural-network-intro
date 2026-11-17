@@ -7,6 +7,7 @@ NeuralNetwork::NeuralNetwork(const vector<uint> &topology, const RowVector &inpu
 #endif
     this->topology = topology;
     this->inputScaling = inputScaling;
+    this->inputOffset = RowVector::Zero(inputScaling.size());
     this->learningRate = learningRate;
     for (uint i = 0; i < topology.size(); ++i)
     {
@@ -57,8 +58,7 @@ RowVector NeuralNetwork::propagateForward(const RowVector &input)
     }
 
     RowVector scaled_input(input.size());
-    scaled_input =
-        input.array() * inputScaling.array(); // Eigen allows assigning array expressions to matrix / vector variables
+    scaled_input = (input - inputOffset).array() * inputScaling.array(); // Eigen allows assigning array expressions to matrix / vector variables
 
     // set the input to input layer
     // block returns a part of the given vector or matrix
@@ -68,11 +68,16 @@ RowVector NeuralNetwork::propagateForward(const RowVector &input)
     // propagate the data forward and then
     // apply the activation function to your network
     // unaryExpr applies the given function to all elements of CURRENT_LAYER
-    for (uint i = 1; i < topology.size(); ++i)
-    {
-        (*neuronLayers[i]) = (*neuronLayers[i - 1]) * (*weights[i - 1]);
-        neuronLayers[i]->block(0, 0, 1, topology[i]) =
-            neuronLayers[i]->block(0, 0, 1, topology[i]).unaryExpr(function(activationFunction));
+    // the unactivated values are kept in cacheLayers, backpropagation needs the activation
+    // function derivative at exactly these values. The output layer stays linear, so the
+    // network output is not limited to the range of the activation function (regression)
+    for (uint i=1; i<topology.size(); ++i) {
+        (*cacheLayers[i]) = (*neuronLayers[i - 1]) * (*weights[i - 1]);
+        (*neuronLayers[i]) = (*cacheLayers[i]);
+        if (i != topology.size() - 1) {
+            neuronLayers[i]->block(0, 0, 1, topology[i]) =
+                cacheLayers[i]->block(0, 0, 1, topology[i]).unaryExpr(function(activationFunction));
+        }
     }
 
     return *neuronLayers.back();
@@ -86,9 +91,16 @@ void NeuralNetwork::calcErrors(RowVector &output)
     // error calculation of hidden layers is different
     // we will begin by the last hidden layer
     // and we will continue till the first hidden layer
-    for (uint i = topology.size() - 2; i > 0; i--)
-    {
-        (*deltas[i]) = (*deltas[i + 1]) * (weights[i]->transpose());
+    // chain rule: the error of the next layer passes through its activation function derivative
+    // before it is distributed back over the weights (the bias neuron of the next layer has no
+    // incoming error, so only its first topology[i + 1] neurons are used)
+    for (uint i=topology.size() - 2; i>0; i--) {
+        const uint num_next = topology[i + 1];
+        RowVector gradient(num_next);
+        for (uint c=0; c<num_next; ++c) {
+            gradient(c) = deltas[i + 1]->coeff(c) * layerActivationDerivative(i + 1, cacheLayers[i + 1]->coeff(c));
+        }
+        (*deltas[i]) = gradient * (weights[i]->leftCols(num_next).transpose());
     }
 }
 
@@ -100,9 +112,8 @@ void NeuralNetwork::updateWeights(void)
         // compute element-wise: delta * activationFunctionDerivative(cache) for this layer
         uint num_neurons = (i != topology.size() - 2) ? weights[i]->cols() - 1 : weights[i]->cols();
         RowVector gradient(num_neurons);
-        for (uint c = 0; c < num_neurons; ++c)
-        {
-            gradient(c) = deltas[i + 1]->coeffRef(c) * activationFunctionDerivative(cacheLayers[i + 1]->coeffRef(c));
+        for (uint c=0; c<num_neurons; ++c) {
+            gradient(c) = deltas[i + 1]->coeffRef(c) * layerActivationDerivative(i + 1, cacheLayers[i + 1]->coeffRef(c));
         }
         // outer product: each column of the weight update is neuronLayers[i]^T * gradient[c]
         weights[i]->block(0, 0, weights[i]->rows(), num_neurons) +=
@@ -110,7 +121,33 @@ void NeuralNetwork::updateWeights(void)
     }
 }
 
-void NeuralNetwork::saveWeights(const string &filename)
+Scalar NeuralNetwork::layerActivationDerivative(uint layer, Scalar x) const
+{
+    return (layer == topology.size() - 1) ? Scalar(1.0) : activationFunctionDerivative(x);
+}
+
+void NeuralNetwork::fitInputNormalization(const TrainingData& input_data)
+{
+    if (input_data.empty()) {
+        return;
+    }
+    RowVector sum = RowVector::Zero(inputScaling.size());
+    RowVector sum_sq = RowVector::Zero(inputScaling.size());
+    for (const auto& p : input_data) {
+        sum += *p;
+        sum_sq += p->cwiseProduct(*p);
+    }
+    const Scalar n = Scalar(input_data.size());
+    inputOffset = sum / n;
+    for (Eigen::Index i=0; i<inputScaling.size(); ++i) {
+        const Scalar var = sum_sq(i) / n - inputOffset(i) * inputOffset(i);
+        const Scalar std_dev = (var > Scalar(0.0)) ? sqrt(var) : Scalar(0.0);
+        // a constant input carries no information, it is disabled instead of amplified noise
+        inputScaling(i) = (std_dev > Scalar(1.0e-6)) ? (Scalar(1.0) / std_dev) : Scalar(0.0);
+    }
+}
+
+void NeuralNetwork::saveWeights(const string& filename)
 {
     ofstream file1(filename);
     for (const auto& p : weights) {
@@ -127,6 +164,15 @@ void NeuralNetwork::saveWeights(const string &filename)
                 file1 << p->coeff(j, i) << endl;
             }
         }
+    }
+
+    // input pre-processing as one more block in the same format: cols = inputs, rows = 2
+    // (offset, scaling), so loaded weights see the same inputs as during training
+    file1 << inputScaling.size() << endl;
+    file1 << 2 << endl;
+    for (Eigen::Index i=0; i<inputScaling.size(); ++i) {
+        file1 << inputOffset(i) << endl;
+        file1 << inputScaling(i) << endl;
     }
 
     file1.close();
@@ -161,6 +207,22 @@ int NeuralNetwork::loadWeights(const string &filename)
                 getline(file, line, '\n');
                 p->coeffRef(j, i) = stof(line);
             }
+        }
+    }
+
+    // optional input pre-processing block (files written before it was added end here)
+    if (getline(file, line, '\n') && !line.empty()) {
+        const long int cols = stoi(line);
+        getline(file, line, '\n');
+        const long int rows = stoi(line);
+        if ((cols != inputScaling.size()) || (rows != 2)) {
+            return MISMATCH_IN_SIZE;
+        }
+        for (Eigen::Index i=0; i<cols; ++i) {
+            getline(file, line, '\n');
+            inputOffset(i) = stof(line);
+            getline(file, line, '\n');
+            inputScaling(i) = stof(line);
         }
     }
 

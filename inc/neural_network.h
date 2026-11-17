@@ -37,21 +37,28 @@ class NeuralNetwork
     // function to update the weights of connections
     void updateWeights(void);
 
+    // activation function derivative of the given layer, the output layer is linear (derivative 1)
+    Scalar layerActivationDerivative(uint layer, Scalar x) const;
+    
     // storage objects for working of neural network
     vector<unique_ptr<RowVector>> neuronLayers; // stores the different layers of out network
     vector<unique_ptr<RowVector>> cacheLayers; // stores the unactivated (activation fn not yet applied) values of layers
     vector<unique_ptr<RowVector>> deltas; // stores the error contribution of each neurons
     vector<unique_ptr<Matrix>> weights; // the connection weights itself
     Scalar learningRate;
-    vector<uint> topology;  // topology of the nn system
-    RowVector inputScaling; // pre-processing the inputs
-  protected:
-  public:
+    vector<uint> topology; // topology of the nn system
+    RowVector inputScaling; // pre-processing the inputs: (input - inputOffset) * inputScaling
+    RowVector inputOffset;
+protected:
+public:
     // constructor
     NeuralNetwork(const vector<uint> &topology, const RowVector &inputScaling, Scalar learningRate = Scalar(0.005));
 
     // function for forward propagation of data
     RowVector propagateForward(const RowVector &input);
+
+    // fit the input pre-processing to the training data: inputOffset = mean, inputScaling = 1 / standard deviation
+    void fitInputNormalization(const TrainingData& input_data);
 
     // save the weight matrices after training
     void saveWeights(const string &filename);
